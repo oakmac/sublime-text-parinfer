@@ -1,0 +1,5 @@
+# ignore compiled Python files
+*.pyc
+
+# ignore diff files
+*.diff
