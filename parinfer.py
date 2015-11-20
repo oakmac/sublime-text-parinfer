@@ -12,12 +12,17 @@ from subprocess import PIPE, Popen
 proc = None
 
 def start_process():
-    cmd = ["/usr/bin/node", "-v"]
-    env = os.environ.copy()
+    cmd = ["/usr/bin/node", "parinfer.js"]
+    # env = os.environ.copy()
     proc = Popen(cmd, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    lines_iterator = iter(proc.stdout.readline, b"")
-    for line in lines_iterator:
-        print(line)
+
+    while True:
+        line = proc.stdout.readline()
+        if line != '':
+            print "xx", line.rstrip(), "xx"
+        else:
+            print "we're done here"
+            break
 
 debounceIntervalMs = 50
 
@@ -28,9 +33,9 @@ class Parinfer(sublime_plugin.EventListener):
 
     ## actually run Parinfer on the file
     def runParinfer(self, view):
-        print "oh hai???"
-        #start_process()
-        #print "???BANANAS"
+        print "~~~ start runParinfer"
+        start_process()
+        print "~~~ end runParinfer"
 
     ## debounce intermediary
     def handleTimeout(self, view):
