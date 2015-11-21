@@ -1,30 +1,59 @@
-var readline = require('readline');
+var net = require('net'),
+    fs = require('fs');
 
-var rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
+//------------------------------------------------------------------------------
+// Python --> JS
+//------------------------------------------------------------------------------
+
+const pyToJsSocketFile = '/tmp/py-to-js.sock';
+
+// remove the py->js socket file if it exists
+try {
+  fs.unlinkSync(pyToJsSocketFile);
+} catch(e) {
+  // no-op
+}
+
+// create the py->js server
+var pyJsServer = net.createServer(function(client) {
+  console.log('Python connected to our socket!');
+  client.on('data', receiveDataFromPython);
+});
+pyJsServer.listen(pyToJsSocketFile, function() {
+  console.log('Waiting for Python to connect...');
 });
 
-rl.setPrompt('Parinfer> ');
-rl.prompt();
-
-function close() {
-  console.log('Goodbye!');
-  process.exit(0);
+function receiveDataFromPython(data) {
+  console.log('Receiving data from Python:');
+  console.log(data.toString());
 }
 
-function onLine(l) {
-  console.log('~~~~~~~~~~~~~~~ LINE');
+//------------------------------------------------------------------------------
+// JS --> Python
+//------------------------------------------------------------------------------
+
+const jsToPySocketFile = '/tmp/js-to-py.sock',
+      retryTimeMs = 100;
+
+// connect to the js->py socket
+connectToPython();
+
+var pythonClient = null;
+
+// attempts to connect to the js->py socket
+// will keep re-trying every retryTimeMs until it succeeds
+function connectToPython() {
+  //console.log('Attempting to connect to the Python -> JS socket...');
+  pythonClient = net.connect({path: jsToPySocketFile}, jsToPyConnected);
+  pythonClient.on('error', jsToPyError);
 }
 
-function onPause() {
-  console.log('~~~~~~~~~~~~~~ PAUSE');
+function jsToPyError() {
+  //console.log('Could not connect to the JS -> Python Socket. Retrying in 100ms...');
+  setTimeout(connectToPython, retryTimeMs);
 }
 
-function onResume() {
-  console.log('~~~~~~~~~~~~~~ RESUME');
+function jsToPyConnected() {
+  console.log('Connected to JS -> Python socket!');
+  // client.send('bananas!');
 }
-
-rl.on('line', onLine);
-rl.on('pause', onPause);
-rl.on('resume', onResume);
