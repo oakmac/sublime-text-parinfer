@@ -9,7 +9,7 @@ Nothing works right now; this project is just getting started :)
 I am working on the following steps:
 
 * [x] Connect to the Sublime Text API when the text buffer is modified
-* [ ] Bi-directional communication between Python and the node.js process
+* [x] Bi-directional communication between Python and the node.js process
 * [ ] Start a long-running node.js process from Python
 
 ## License

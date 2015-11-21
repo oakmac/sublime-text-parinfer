@@ -9,34 +9,25 @@ import sublime, sublime_plugin
 import functools
 import socket
 import os, os.path
-import time
 
 # constants
-py_to_js_socket_file = '/tmp/py-to-js.sock'
-js_to_py_socket_file = '/tmp/js-to-py.sock'
+socket_file = '/tmp/sublime-text-parinfer.sock'
 debounce_interval_ms = 50
+
+# TODO: start the node.js process in a background thread
 
 class Parinfer(sublime_plugin.EventListener):
 
     # stateful debounce counter
     pending = 0
 
-    py_to_js_socket = None
-    js_to_py_socket = None
+    socket = None
+    conn = None
 
     # connect to the node.js server
-    def connect_py_js_socket(self):
-        self.py_to_js_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.py_to_js_socket.connect(py_to_js_socket_file)
-
-    # start our Python server
-    def start_js_py_server(self):
-        # remove the JS -> PY socket file if it exists
-        if os.path.exists(js_to_py_socket_file):
-            os.remove(js_to_py_socket_file)
-        self.js_to_py_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.js_to_py_socket.bind(js_to_py_socket_file)
-        self.js_to_py_socket.listen(5)
+    def connect_to_node(self):
+        self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.socket.connect(socket_file)
 
     # actually run Parinfer on the file
     def run_parinfer(self, view):
@@ -44,17 +35,15 @@ class Parinfer(sublime_plugin.EventListener):
         all_text = view.substr(whole_region)
 
         # connect to node.js if needed
-        if self.py_to_js_socket is None:
-            self.connect_py_js_socket()
-
-        # start our server if needed
-        if self.py_to_js_socket is None:
-            self.connect_py_js_socket()
+        if self.socket is None:
+            self.connect_to_node()
 
         # send text to node
-        self.py_to_js_socket.send(all_text)
+        self.socket.sendall('{"foo":"bar"}')
 
-        # TODO: listen for node response
+        # wait for the node response
+        result = self.socket.recv(1024)
+        print "Result from node: ", result
 
         # TODO: update the buffer
         #e = view.begin_edit()
