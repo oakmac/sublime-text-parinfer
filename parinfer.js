@@ -1,5 +1,6 @@
 var net = require('net'),
-    fs = require('fs');
+    fs = require('fs'),
+    parinfer = require('./parinfer-lib.js');
 
 //------------------------------------------------------------------------------
 // Python --> JS
@@ -19,7 +20,7 @@ var conn = null;
 
 // start the server and wait for Python to connect
 var server = net.createServer(function(newConn) {
-  console.log('Python connected to our server!');
+  console.log('Python is connected');
   conn = newConn;
   conn.on('data', receiveDataFromPython);
 });
@@ -28,14 +29,25 @@ server.listen(socketFile, function() {
 });
 
 function receiveDataFromPython(rawData) {
-  //console.log('Receiving data from Python:');
-  //console.log(data.toString());
+  // DEBUG:
+  console.log(rawData.toString());
 
-  var input = JSON.parse(rawData.toString());
+  // TODO: wrap this parse in a try/catch
+  var data = JSON.parse(rawData.toString());
 
-  // TODO: run parinfer on the text
-  console.log(input);
+  // run parinfer on the text
+  // TODO: need to pull down a new version of parinfer-lib.js
+  var result = parinfer.indentMode(data.text, {
+    row: data.row,
+    column: data.column
+  });
+  var returnObj = {isValid: false};
+
+  if (typeof result === 'string') {
+    returnObj.isValid = true;
+    returnObj.text = result;
+  }
 
   // send the result back to Python
-  conn.write('Bananas ' + Math.random());
+  conn.write(JSON.stringify(returnObj));
 }
