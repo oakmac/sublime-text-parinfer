@@ -1,10 +1,12 @@
+// This file is part of the Parinfer Sublime Text plugin:
+// https://github.com/oakmac/sublime-text-parinfer
+
+// Released under the ISC License:
+// https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
+
 var net = require('net'),
     fs = require('fs'),
     parinfer = require('./parinfer-lib.js');
-
-//------------------------------------------------------------------------------
-// Python --> JS
-//------------------------------------------------------------------------------
 
 const socketFile = '/tmp/sublime-text-parinfer.sock';
 

@@ -1,9 +1,11 @@
-### Sublime Text plugin for Parinfer
-### More information about Parinfer can be found here:
-### http://shaunlebron.github.io/parinfer/
+## Sublime Text plugin for Parinfer
+## https://github.com/oakmac/sublime-text-parinfer
 
-### This plugin is open source under the ISC License.
-### https://github.com/oakmac/sublime-text-parinfer
+## More information about Parinfer can be found here:
+## http://shaunlebron.github.io/parinfer/
+
+## Released under the ISC License:
+## https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
 
 import sublime, sublime_plugin
 import functools
