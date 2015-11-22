@@ -1,0 +1,10 @@
+[
+  {
+    "caption": "Parinfer: Enable / Toggle Mode",
+    "command": "parinfer_toggle_on"
+  },
+  {
+    "caption": "Parinfer: Disable",
+    "command": "parinfer_toggle_off"
+  }
+]

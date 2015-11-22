@@ -97,3 +97,13 @@ class Parinfer(sublime_plugin.EventListener):
     def on_modified(self, view):
         self.pending = self.pending + 1
         sublime.set_timeout(functools.partial(self.handle_timeout, view), debounce_interval_ms)
+
+class ParinferToggleOnCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view_id = self.view.id()
+        print "TOGGLE ON, view id: ", view_id
+
+class ParinferToggleOffCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view_id = self.view.id()
+        print "TOGGLE OFF, view id: ", view_id
