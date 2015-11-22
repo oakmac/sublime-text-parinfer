@@ -7,15 +7,17 @@
 
 import sublime, sublime_plugin
 import functools
-import socket
-import os, os.path
 import json
+import os, os.path
+import socket
+import subprocess
 
 # constants
 socket_file = '/tmp/sublime-text-parinfer.sock'
 debounce_interval_ms = 50
 
-# TODO: start the node.js process in a background thread
+# start the node.js process
+subprocess.Popen(["/usr/bin/node", "parinfer.js"])
 
 class Parinfer(sublime_plugin.EventListener):
 

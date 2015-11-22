@@ -23,6 +23,7 @@ var server = net.createServer(function(newConn) {
   console.log('Python is connected');
   conn = newConn;
   conn.on('data', receiveDataFromPython);
+  conn.on('end', shutItDown);
 });
 server.listen(socketFile, function() {
   console.log('Waiting for Python to connect...');
@@ -30,13 +31,12 @@ server.listen(socketFile, function() {
 
 function receiveDataFromPython(rawData) {
   // DEBUG:
-  console.log(rawData.toString());
+  //console.log(rawData.toString());
 
   // TODO: wrap this parse in a try/catch
   var data = JSON.parse(rawData.toString());
 
   // run parinfer on the text
-  // TODO: need to pull down a new version of parinfer-lib.js
   var result = parinfer.indentMode(data.text, {
     row: data.row,
     column: data.column
@@ -50,4 +50,9 @@ function receiveDataFromPython(rawData) {
 
   // send the result back to Python
   conn.write(JSON.stringify(returnObj));
+}
+
+// client has disconnected; shut it down!
+function shutItDown() {
+  process.exit();
 }
