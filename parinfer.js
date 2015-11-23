@@ -38,8 +38,14 @@ function receiveDataFromPython(rawData) {
   // TODO: wrap this parse in a try/catch
   var data = JSON.parse(rawData.toString());
 
+  // pick indentMode or parenMode
+  var parinferFn = parinfer.indentMode;
+  if (data.mode === 'paren') {
+    parinferFn = parinfer.parenMode;
+  }
+
   // run parinfer on the text
-  var result = parinfer.indentMode(data.text, {
+  var result = parinferFn(data.text, {
     row: data.row,
     column: data.column
   });

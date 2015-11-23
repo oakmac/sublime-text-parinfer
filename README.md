@@ -14,11 +14,11 @@ I am working on the following steps:
 * [x] Connect to the Sublime Text API when the text buffer is modified
 * [x] Bi-directional communication between Python and the node.js process
 * [x] Start a long-running node.js process from Python
-* [ ] Only enable for certain file extensions (Issue #6)
-* [ ] Simple config file for editing file extensions (Issue #6)
-* [ ] Set up [Package Control] (Issue #4)
-* [ ] Enable Paren Mode
+* [x] Enable Paren Mode
 * [x] Hotkeys to toggle between Indent and Paren mode
+* [ ] Only enable for certain file extensions ([Issue #6])
+* [ ] Simple config file for editing file extensions ([Issue #6])
+* [ ] Set up [Package Control] ([Issue #4])
 
 ## License
 

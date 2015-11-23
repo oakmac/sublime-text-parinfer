@@ -43,8 +43,10 @@ class Parinfer(sublime_plugin.EventListener):
 
     # actually run Parinfer on the file
     def run_parinfer(self, view):
+        current_status = view.get_status(STATUS_KEY)
+
         # exit early if Parinfer is not enabled on this view
-        if view.get_status(STATUS_KEY) == '':
+        if current_status == '':
             return
 
         whole_region = sublime.Region(0, view.size())
@@ -63,7 +65,11 @@ class Parinfer(sublime_plugin.EventListener):
             self.connect_to_node()
 
         # send JSON to node
-        data = {'mode': 'indent',
+        mode = 'indent'
+        if current_status == PAREN_STATUS:
+            mode = 'paren'
+
+        data = {'mode': mode,
                 'row': startrow,
                 'column': startcol,
                 'text': all_text}
