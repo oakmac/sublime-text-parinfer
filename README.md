@@ -18,7 +18,7 @@ I am working on the following steps:
 * [ ] Simple config file for editing file extensions (Issue #6)
 * [ ] Set up [Package Control] (Issue #4)
 * [ ] Enable Paren Mode
-* [ ] Hotkeys to toggle between Indent and Paren mode (Issue #5)
+* [x] Hotkeys to toggle between Indent and Paren mode
 
 ## License
 
