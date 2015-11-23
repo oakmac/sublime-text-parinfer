@@ -21,15 +21,15 @@ STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
 INDENT_STATUS = 'Parinfer: Indent'
 
-# do "which node" to find out where their node path is
-# TODO: this won't work on Windows; also need to handle the case where this fails
-#       or doesn't find node
+# do "which node" to find out where their node.js path is
+# TODO: this won't work on Windows; also need to handle the case where this
+#       fails or doesn't find node.js
 which_process = subprocess.Popen(["which", "node"], stdout=subprocess.PIPE)
 which_output, which_err = which_process.communicate()
-node_path = which_output.strip()
+nodejs_path = which_output.strip()
 
 # start the node.js process
-subprocess.Popen([node_path, "parinfer.js"])
+subprocess.Popen([nodejs_path, "parinfer.js"])
 
 class Parinfer(sublime_plugin.EventListener):
 
@@ -38,13 +38,12 @@ class Parinfer(sublime_plugin.EventListener):
 
     # holds our connection to the node.js server
     socket = None
-    conn = None
 
     # stateful - holds our last update
     last_update = None
 
     # connect to the node.js server
-    def connect_to_node(self):
+    def connect_to_nodejs(self):
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.socket.connect(SOCKET_FILE)
 
@@ -69,13 +68,14 @@ class Parinfer(sublime_plugin.EventListener):
 
         # connect to node.js if needed
         if self.socket is None:
-            self.connect_to_node()
+            self.connect_to_nodejs()
 
-        # send JSON to node
+        # specify the Parinfer mode
         mode = 'indent'
         if current_status == PAREN_STATUS:
             mode = 'paren'
 
+        # send JSON to node.js
         data = {'mode': mode,
                 'row': startrow,
                 'column': startcol,
@@ -88,7 +88,7 @@ class Parinfer(sublime_plugin.EventListener):
         result = json.loads(result_json)
 
         ## DEBUG:
-        # print "Result from node: ", result['text']
+        # print "JSON response from node.js: ", result_json
 
         # begin edit
         e = view.begin_edit()
@@ -104,7 +104,7 @@ class Parinfer(sublime_plugin.EventListener):
         # end edit
         view.end_edit(e)
 
-        # save this update
+        # save the text of this update so we don't have to process it again
         self.last_update = result['text']
 
     # debounce intermediary
