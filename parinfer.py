@@ -21,8 +21,15 @@ STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
 INDENT_STATUS = 'Parinfer: Indent'
 
+# do "which node" to find out where their node path is
+# TODO: this won't work on Windows; also need to handle the case where this fails
+#       or doesn't find node
+which_process = subprocess.Popen(["which", "node"], stdout=subprocess.PIPE)
+which_output, which_err = which_process.communicate()
+node_path = which_output.strip()
+
 # start the node.js process
-subprocess.Popen(["/usr/bin/node", "parinfer.js"])
+subprocess.Popen([node_path, "parinfer.js"])
 
 class Parinfer(sublime_plugin.EventListener):
 
