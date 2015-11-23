@@ -15,8 +15,11 @@ import socket
 import subprocess
 
 # constants
-socket_file = '/tmp/sublime-text-parinfer.sock'
-debounce_interval_ms = 50
+SOCKET_FILE = '/tmp/sublime-text-parinfer.sock'
+DEBOUNCE_INTERVAL_MS = 50
+STATUS_KEY = 'parinfer'
+PAREN_STATUS = 'Parinfer: Paren'
+INDENT_STATUS = 'Parinfer: Indent'
 
 # start the node.js process
 subprocess.Popen(["/usr/bin/node", "parinfer.js"])
@@ -36,10 +39,14 @@ class Parinfer(sublime_plugin.EventListener):
     # connect to the node.js server
     def connect_to_node(self):
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.socket.connect(socket_file)
+        self.socket.connect(SOCKET_FILE)
 
     # actually run Parinfer on the file
     def run_parinfer(self, view):
+        # exit early if Parinfer is not enabled on this view
+        if view.get_status(STATUS_KEY) == '':
+            return
+
         whole_region = sublime.Region(0, view.size())
         all_text = view.substr(whole_region)
 
@@ -96,14 +103,20 @@ class Parinfer(sublime_plugin.EventListener):
     # fires everytime the editor is modified; basically calls a debounced run_parinfer
     def on_modified(self, view):
         self.pending = self.pending + 1
-        sublime.set_timeout(functools.partial(self.handle_timeout, view), debounce_interval_ms)
+        sublime.set_timeout(functools.partial(self.handle_timeout, view), DEBOUNCE_INTERVAL_MS)
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        view_id = self.view.id()
-        print "TOGGLE ON, view id: ", view_id
+        # view_id = self.view.id()
+        # update the status bar
+        current_status = self.view.get_status(STATUS_KEY)
+        if current_status == INDENT_STATUS:
+            self.view.set_status(STATUS_KEY, PAREN_STATUS)
+        else:
+            self.view.set_status(STATUS_KEY, INDENT_STATUS)
 
 class ParinferToggleOffCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        view_id = self.view.id()
-        print "TOGGLE OFF, view id: ", view_id
+        #view_id = self.view.id()
+        # remove from the status bar
+        self.view.erase_status(STATUS_KEY)
