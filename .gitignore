@@ -3,3 +3,6 @@
 
 # ignore diff files
 *.diff
+
+# ignore config file
+config.json

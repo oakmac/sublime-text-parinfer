@@ -10,7 +10,7 @@
 import sublime, sublime_plugin
 import functools
 import json
-import os, os.path
+import os, os.path, shutil
 import socket
 import subprocess
 
@@ -20,20 +20,21 @@ DEBOUNCE_INTERVAL_MS = 50
 STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
 INDENT_STATUS = 'Parinfer: Indent'
+DEFAULT_CONFIG_FILE = './default-config.json'
+CONFIG_FILE = './config.json'
 
-# do "which node" to find out where their node.js path is
-# TODO: this won't work on Windows; also need to handle the case where this
-#       fails or doesn't find node.js
-which_process = subprocess.Popen(["which", "node"], stdout=subprocess.PIPE)
-which_output, which_err = which_process.communicate()
-nodejs_path = which_output.strip()
+# create the config file from the default if it is not there
+if not os.path.isfile(CONFIG_FILE):
+    shutil.copy(DEFAULT_CONFIG_FILE, CONFIG_FILE)
 
-# FIXME: temporary workaround
-if sublime.platform() == 'osx':
-    nodejs_path = '/usr/local/bin/node'
+# load the config
+with open(CONFIG_FILE) as config_json:
+    CONFIG = json.load(config_json)
+
+# TODO: show them an error if their nodejs path is wrong
 
 # start the node.js process
-subprocess.Popen([nodejs_path, "parinfer.js"])
+subprocess.Popen([CONFIG['nodejs_path'], "parinfer.js"])
 
 class Parinfer(sublime_plugin.EventListener):
 

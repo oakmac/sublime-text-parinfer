@@ -1,0 +1,9 @@
+{
+  "nodejs_path": "/usr/bin/node",
+  "file_extensions": [
+    ".clj",
+    ".cljs",
+    ".cljc",
+    ".lfe"
+  ]
+}
