@@ -28,6 +28,10 @@ which_process = subprocess.Popen(["which", "node"], stdout=subprocess.PIPE)
 which_output, which_err = which_process.communicate()
 nodejs_path = which_output.strip()
 
+# FIXME: temporary workaround
+if sublime.platform() == 'osx':
+    nodejs_path = '/usr/local/bin/node'
+
 # start the node.js process
 subprocess.Popen([nodejs_path, "parinfer.js"])
 
