@@ -17,6 +17,8 @@ import subprocess
 # constants
 SOCKET_FILE = os.path.join(os.path.expanduser('~'), '.sublime-text-parinfer.sock')
 DEBOUNCE_INTERVAL_MS = 50
+PING_INTERVAL_MS = 20 * 1000
+CONNECTION_RETRY_INTERVAL_MS = 100
 STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
 INDENT_STATUS = 'Parinfer: Indent'
@@ -37,23 +39,50 @@ with open(CONFIG_FILE) as config_json:
 subprocess.Popen([CONFIG['nodejs_path'], "parinfer.js"])
 
 class Parinfer(sublime_plugin.EventListener):
+    def __init__(self):
+        # stateful debounce counter
+        self.pending = 0
 
-    # stateful debounce counter
-    pending = 0
+        # holds our connection to the node.js server
+        self.nodejs_socket = None
 
-    # holds our connection to the node.js server
-    socket = None
+        self.connected_to_nodejs = False
 
-    # stateful - holds our last update
-    last_update = None
+        # stateful - holds our last update
+        self.last_update_text = None
+
+        # kick off the initial connection to nodejs
+        self.connect_to_nodejs()
 
     # connect to the node.js server
+    # NOTE: recursive function; will keep trying every CONNECTION_RETRY_INTERVAL_MS
+    #       until it succeeds
     def connect_to_nodejs(self):
-        self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.socket.connect(SOCKET_FILE)
+        self.nodejs_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 
-    # actually run Parinfer on the file
+        try:
+            # try to connect to node.js
+            self.nodejs_socket.connect(SOCKET_FILE)
+
+            # start the pings on successful connection
+            sublime.set_timeout(self.ping_nodejs, PING_INTERVAL_MS)
+
+            self.connected_to_nodejs = True
+
+        except socket.error as msg:
+            # If at first you don't succeed, Try, try, try again.
+            sublime.set_timeout(self.connect_to_nodejs, CONNECTION_RETRY_INTERVAL_MS)
+
+    def ping_nodejs(self):
+        self.nodejs_socket.sendall("PING")
+        sublime.set_timeout(self.ping_nodejs, PING_INTERVAL_MS)
+
+    # run Parinfer on the file
     def run_parinfer(self, view):
+        # exit early if we are not connected to nodejs
+        if self.connected_to_nodejs is not True:
+            return
+
         current_status = view.get_status(STATUS_KEY)
 
         # exit early if Parinfer is not enabled on this view
@@ -64,16 +93,12 @@ class Parinfer(sublime_plugin.EventListener):
         all_text = view.substr(whole_region)
 
         # exit early if there has been no change since our last update
-        if all_text == self.last_update:
+        if all_text == self.last_update_text:
             return
 
         selections = view.sel()
         first_cursor = selections[0].begin()
         startrow, startcol = view.rowcol(first_cursor)
-
-        # connect to node.js if needed
-        if self.socket is None:
-            self.connect_to_nodejs()
 
         # specify the Parinfer mode
         mode = 'indent'
@@ -86,10 +111,10 @@ class Parinfer(sublime_plugin.EventListener):
                 'column': startcol,
                 'text': all_text}
         data_string = json.dumps(data)
-        self.socket.sendall(data_string)
+        self.nodejs_socket.sendall(data_string)
 
         # wait for the node response
-        result_json = self.socket.recv(4096)
+        result_json = self.nodejs_socket.recv(4096)
         result = json.loads(result_json)
 
         ## DEBUG:
@@ -110,7 +135,7 @@ class Parinfer(sublime_plugin.EventListener):
         view.end_edit(e)
 
         # save the text of this update so we don't have to process it again
-        self.last_update = result['text']
+        self.last_update_text = result['text']
 
     # debounce intermediary
     def handle_timeout(self, view):
@@ -125,7 +150,6 @@ class Parinfer(sublime_plugin.EventListener):
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        # view_id = self.view.id()
         # update the status bar
         current_status = self.view.get_status(STATUS_KEY)
         if current_status == INDENT_STATUS:
@@ -135,6 +159,5 @@ class ParinferToggleOnCommand(sublime_plugin.TextCommand):
 
 class ParinferToggleOffCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        #view_id = self.view.id()
         # remove from the status bar
         self.view.erase_status(STATUS_KEY)

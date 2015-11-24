@@ -20,7 +20,8 @@ try {
 }
 
 // the socket connection
-var conn = null;
+var conn = null,
+    lastConnectionTime = now();
 
 // start the server and wait for Python to connect
 var server = net.createServer(function(newConn) {
@@ -33,12 +34,18 @@ server.listen(socketFile, function() {
   console.log('Waiting for Python to connect...');
 });
 
-function receiveDataFromPython(rawData) {
-  // DEBUG:
-  //console.log(rawData.toString());
+function receiveDataFromPython(rawInput) {
+  // convert input to string
+  inputStr = rawInput.toString();
+
+  // update the last connection time
+  lastConnectionTime = now();
+
+  // do nothing on a ping
+  if (inputStr === 'PING') return;
 
   // TODO: wrap this parse in a try/catch
-  var data = JSON.parse(rawData.toString());
+  var data = JSON.parse(inputStr);
 
   // pick indentMode or parenMode
   var parinferFn = parinfer.indentMode;
@@ -62,7 +69,24 @@ function receiveDataFromPython(rawData) {
   conn.write(JSON.stringify(returnObj));
 }
 
-// client has disconnected; shut it down!
+// goodbye!
 function shutItDown() {
   process.exit();
+}
+
+function now() {
+  return Date.now();
+}
+
+// poll every minute to make sure the connection is still live
+const oneMinute = 60 * 1000;
+setInterval(checkLastUpdate, oneMinute);
+
+function checkLastUpdate() {
+  var currentTime = now();
+
+  // shut down if we haven't heard anything from Python in a while
+  if (currentTime - lastConnectionTime > oneMinute) {
+    shutItDown();
+  }
 }
