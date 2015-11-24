@@ -4,11 +4,13 @@
 // Released under the ISC License:
 // https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
 
-var net = require('net'),
-    fs = require('fs'),
+var fs = require('fs'),
+    net = require('net'),
+    os = require('os'),
+    path = require('path'),
     parinfer = require('./parinfer-lib.js');
 
-const socketFile = '/tmp/sublime-text-parinfer.sock';
+const socketFile = path.join(os.homedir(), '.sublime-text-parinfer.sock');
 
 // remove the socket file if it exists
 try {

@@ -15,7 +15,7 @@ import socket
 import subprocess
 
 # constants
-SOCKET_FILE = '/tmp/sublime-text-parinfer.sock'
+SOCKET_FILE = os.path.join(os.path.expanduser('~'), '.sublime-text-parinfer.sock')
 DEBOUNCE_INTERVAL_MS = 50
 STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
