@@ -46,6 +46,7 @@ class Parinfer(sublime_plugin.EventListener):
         # holds our connection to the node.js server
         self.nodejs_socket = None
 
+        # connected flag
         self.connected_to_nodejs = False
 
         # stateful - holds our last update
@@ -54,12 +55,10 @@ class Parinfer(sublime_plugin.EventListener):
         # kick off the initial connection to nodejs
         self.connect_to_nodejs()
 
-    # connect to the node.js server
     # NOTE: recursive function; will keep trying every CONNECTION_RETRY_INTERVAL_MS
     #       until it succeeds
     def connect_to_nodejs(self):
         self.nodejs_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-
         try:
             # try to connect to node.js
             self.nodejs_socket.connect(SOCKET_FILE)
@@ -67,12 +66,14 @@ class Parinfer(sublime_plugin.EventListener):
             # start the pings on successful connection
             sublime.set_timeout(self.ping_nodejs, PING_INTERVAL_MS)
 
+            # toggle connected flag
             self.connected_to_nodejs = True
 
         except socket.error as msg:
             # If at first you don't succeed, Try, try, try again.
             sublime.set_timeout(self.connect_to_nodejs, CONNECTION_RETRY_INTERVAL_MS)
 
+    # ping the node.js server every PING_INTERVAL_MS to prevent it from shutting down
     def ping_nodejs(self):
         self.nodejs_socket.sendall("PING")
         sublime.set_timeout(self.ping_nodejs, PING_INTERVAL_MS)
@@ -116,9 +117,6 @@ class Parinfer(sublime_plugin.EventListener):
         # wait for the node response
         result_json = self.nodejs_socket.recv(4096)
         result = json.loads(result_json)
-
-        ## DEBUG:
-        # print "JSON response from node.js: ", result_json
 
         # begin edit
         e = view.begin_edit()
