@@ -21,7 +21,7 @@ I am working on the following steps before a first publish to [Package Control]:
 * [ ] Simple config file for editing file extensions ([Issue #6](https://github.com/oakmac/sublime-text-parinfer/issues/6))
 * [ ] Improve speed with the "parent expression" hack ([Issue #9](https://github.com/oakmac/sublime-text-parinfer/issues/9))
 * [ ] Run Paren Mode when a file is first opened ([Issue #14](https://github.com/oakmac/sublime-text-parinfer/issues/14))
-* [ ] Set up [Package Control] ([Issue #4](https://github.com/oakmac/sublime-text-parinfer/issues/4))
+* [ ] Set up [Package Control](https://packagecontrol.io/) ([Issue #4](https://github.com/oakmac/sublime-text-parinfer/issues/4))
 
 ## License
 
