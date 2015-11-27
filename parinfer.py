@@ -38,6 +38,20 @@ with open(CONFIG_FILE) as config_json:
 # start the node.js process
 subprocess.Popen([CONFIG['nodejs_path'], "parinfer.js"])
 
+# Should we automatically start Parinfer on this file?
+def should_start_parinfer(filename):
+    # False if filename is not a string
+    if isinstance(filename, basestring) is not True:
+        return False
+
+    # check the extensions in CONFIG
+    for extension in CONFIG['file_extensions']:
+        if filename.endswith(extension):
+            return True
+
+    # didn't find anything; do not automatically start Parinfer
+    return False
+
 class Parinfer(sublime_plugin.EventListener):
     def __init__(self):
         # stateful debounce counter
@@ -145,6 +159,14 @@ class Parinfer(sublime_plugin.EventListener):
     def on_modified(self, view):
         self.pending = self.pending + 1
         sublime.set_timeout(functools.partial(self.handle_timeout, view), DEBOUNCE_INTERVAL_MS)
+
+    # fires when a file is finished loading
+    def on_load(self, view):
+        # exit early if we do not recognize this file extension
+        if should_start_parinfer(view.file_name()) is not True:
+            return
+
+        print "TODO: start Parinfer here"
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, edit):
