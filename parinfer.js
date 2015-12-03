@@ -10,14 +10,7 @@ var fs = require('fs'),
     path = require('path'),
     parinfer = require('./parinfer-lib.js');
 
-const socketFile = path.join(os.tmpdir(), 'sublime-text-parinfer.sock');
-
-// remove the socket file if it exists
-try {
-  fs.unlinkSync(socketFile);
-} catch(e) {
-  // no-op
-}
+var PORT = parseInt(process.argv[2]);
 
 // the socket connection
 var conn = null,
@@ -31,9 +24,12 @@ var server = net.createServer(function(newConn) {
   conn.on('end', shutItDown);
 });
 
-server.listen(6660, function() {
-  console.log('Waiting for Python to connect...');
+server.listen(PORT, function() {
+  address = server.address();
+  console.log('Parinfer listening on %j', address["port"]);
 });
+
+
 
 function receiveDataFromPython(rawInput) {
   // convert input to string
@@ -43,7 +39,9 @@ function receiveDataFromPython(rawInput) {
   lastConnectionTime = now();
 
   // do nothing on a ping
-  if (inputStr === 'PING') return;
+  if (inputStr === 'PING'){
+    return;
+  }
 
   // TODO: wrap this parse in a try/catch
   var data = JSON.parse(inputStr);

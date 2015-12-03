@@ -6,3 +6,6 @@
 
 # ignore config file
 config.json
+
+# temp sock file
+*.sock
