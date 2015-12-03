@@ -15,15 +15,17 @@ import socket
 import subprocess
 
 # constants
-SOCKET_FILE = os.path.join(os.path.expanduser('~'), '.sublime-text-parinfer.sock')
+SOCKET_FILE = ("127.0.0.1", 6660) #os.path.join(os.path.expanduser('~'), '.sublime-text-parinfer.sock')
 DEBOUNCE_INTERVAL_MS = 50
 PING_INTERVAL_MS = 20 * 1000
 CONNECTION_RETRY_INTERVAL_MS = 100
 STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
 INDENT_STATUS = 'Parinfer: Indent'
-DEFAULT_CONFIG_FILE = './default-config.json'
-CONFIG_FILE = './config.json'
+PLUGIN_PATH = os.path.join(sublime.packages_path(), "sublime-text-parinfer")
+DEFAULT_CONFIG_FILE = os.path.join(PLUGIN_PATH, 'default-config.json')
+CONFIG_FILE = os.path.join(PLUGIN_PATH, 'config.json')
+
 
 # create the config file from the default if it is not there
 if not os.path.isfile(CONFIG_FILE):
@@ -36,7 +38,7 @@ with open(CONFIG_FILE) as config_json:
 # TODO: show them an error if their nodejs path is wrong
 
 # start the node.js process
-subprocess.Popen([CONFIG['nodejs_path'], "parinfer.js"])
+subprocess.Popen([CONFIG['nodejs_path'], "parinfer.js"], cwd=PLUGIN_PATH)
 
 # Should we automatically start Parinfer on this file?
 def should_start_parinfer(filename):
@@ -72,7 +74,7 @@ class Parinfer(sublime_plugin.EventListener):
     # NOTE: recursive function; will keep trying every CONNECTION_RETRY_INTERVAL_MS
     #       until it succeeds
     def connect_to_nodejs(self):
-        self.nodejs_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.nodejs_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             # try to connect to node.js
             self.nodejs_socket.connect(SOCKET_FILE)
@@ -84,12 +86,13 @@ class Parinfer(sublime_plugin.EventListener):
             self.connected_to_nodejs = True
 
         except socket.error as msg:
+            print(msg)
             # If at first you don't succeed, Try, try, try again.
             sublime.set_timeout(self.connect_to_nodejs, CONNECTION_RETRY_INTERVAL_MS)
-
+ 
     # ping the node.js server every PING_INTERVAL_MS to prevent it from shutting down
     def ping_nodejs(self):
-        self.nodejs_socket.sendall("PING")
+        self.nodejs_socket.sendall("PING".encode('utf-8'))
         sublime.set_timeout(self.ping_nodejs, PING_INTERVAL_MS)
 
     # run Parinfer on the file
@@ -126,28 +129,18 @@ class Parinfer(sublime_plugin.EventListener):
                 'column': startcol,
                 'text': all_text}
         data_string = json.dumps(data)
-        self.nodejs_socket.sendall(data_string)
+        self.nodejs_socket.sendall(data_string.encode('utf-8'))
 
         # wait for the node response
-        result_json = self.nodejs_socket.recv(4096)
+        result_json = self.nodejs_socket.recv(4096).decode('utf-8')
+        
         result = json.loads(result_json)
+        print(result)
+        if (result['isValid'] == True):
+            view.run_command("parinfer_edit_view", {"result": result})
 
-        # begin edit
-        e = view.begin_edit()
-
-        # update the buffer
-        view.replace(e, whole_region, result['text'])
-
-        # update the cursor
-        pt = view.text_point(startrow, startcol)
-        view.sel().clear()
-        view.sel().add(sublime.Region(pt))
-
-        # end edit
-        view.end_edit(e)
-
-        # save the text of this update so we don't have to process it again
-        self.last_update_text = result['text']
+            # save the text of this update so we don't have to process it again
+            self.last_update_text = result['text']
 
     # debounce intermediary
     def handle_timeout(self, view):
@@ -166,7 +159,7 @@ class Parinfer(sublime_plugin.EventListener):
         if should_start_parinfer(view.file_name()) is not True:
             return
 
-        print "TODO: start Parinfer here"
+        print("TODO: start Parinfer here")
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -181,3 +174,15 @@ class ParinferToggleOffCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         # remove from the status bar
         self.view.erase_status(STATUS_KEY)
+
+class ParinferEditViewCommand(sublime_plugin.TextCommand):
+    def run(self, edit, result):
+        oldsel = []
+        for region in self.view.sel(): oldsel.append(region)
+
+        # update the buffer
+        self.view.replace(edit, sublime.Region(0, self.view.size()), result['text'])
+
+        self.view.sel().clear()
+        for region in oldsel: self.view.sel().add(region)
+

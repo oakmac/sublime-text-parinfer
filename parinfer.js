@@ -10,7 +10,7 @@ var fs = require('fs'),
     path = require('path'),
     parinfer = require('./parinfer-lib.js');
 
-const socketFile = path.join(os.homedir(), '.sublime-text-parinfer.sock');
+const socketFile = path.join(os.tmpdir(), 'sublime-text-parinfer.sock');
 
 // remove the socket file if it exists
 try {
@@ -30,7 +30,8 @@ var server = net.createServer(function(newConn) {
   conn.on('data', receiveDataFromPython);
   conn.on('end', shutItDown);
 });
-server.listen(socketFile, function() {
+
+server.listen(6660, function() {
   console.log('Waiting for Python to connect...');
 });
 
