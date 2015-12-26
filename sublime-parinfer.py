@@ -116,10 +116,28 @@ class Parinfer(sublime_plugin.EventListener):
     # fires when a file is finished loading
     def on_load(self, view):
         # exit early if we do not recognize this file extension
-        if should_start_parinfer(view.file_name()) is not True:
+        if not should_start_parinfer(view.file_name()):
             return
 
-        print "TODO: start Parinfer here"
+        # run Paren Mode on the whole file
+        whole_region = sublime.Region(0, view.size())
+        all_text = view.substr(whole_region)
+
+        result = paren_mode(all_text, None)
+
+        # TODO:
+        # - what to do when paren mode fails on a new file? show them a message?
+        # - warn them before applying Paren Mode changes?
+
+        if result['success']:
+            # update the buffer if we need to
+            if all_text != result['text']:
+                e = view.begin_edit()
+                view.replace(e, whole_region, result['text'])
+                view.end_edit(e)
+
+            # drop them into Indent Mode
+            view.set_status(STATUS_KEY, INDENT_STATUS)
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, edit):
