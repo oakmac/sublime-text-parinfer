@@ -8,10 +8,10 @@ I am working on the following steps before a first publish to [Package Control]:
 
 * [x] ~~Write an implementation of Parinfer in Python~~ [Done!](https://github.com/oakmac/parinfer.py)
 * [x] Hotkeys to toggle between Indent and Paren mode
-* [ ] Only enable for certain file extensions ([Issue #6](https://github.com/oakmac/sublime-text-parinfer/issues/6))
-* [ ] Simple config file for editing file extensions ([Issue #6](https://github.com/oakmac/sublime-text-parinfer/issues/6))
+* [x] Only enable for certain file extensions ([Issue #6](https://github.com/oakmac/sublime-text-parinfer/issues/6))
+* [x] Simple config file for editing file extensions ([Issue #6](https://github.com/oakmac/sublime-text-parinfer/issues/6))
 * [ ] Improve speed with the "parent expression" hack ([Issue #9](https://github.com/oakmac/sublime-text-parinfer/issues/9))
-* [ ] Run Paren Mode when a file is first opened ([Issue #14](https://github.com/oakmac/sublime-text-parinfer/issues/14))
+* [x] Run Paren Mode when a file is first opened ([Issue #14](https://github.com/oakmac/sublime-text-parinfer/issues/14))
 * [ ] Set up [Package Control](https://packagecontrol.io/) ([Issue #4](https://github.com/oakmac/sublime-text-parinfer/issues/4))
 
 ## License
