@@ -50,28 +50,26 @@ def should_start_parinfer(filename):
 def is_parent_expression(txt):
     return re.match(PARENT_EXPRESSION_RE, txt) != None
 
-def find_start_parent_expression(lines, line_no, view):
+def find_start_parent_expression(lines, line_no):
     if line_no == 0:
         return line_no
 
     idx = line_no - 1
     while idx > 0:
-        line = view.substr(lines[idx])
-        if is_parent_expression(line):
+        if is_parent_expression(lines[idx]):
             return idx
         idx = idx - 1
 
     return 0
 
-def find_end_parent_expression(lines, line_no, view):
+def find_end_parent_expression(lines, line_no):
     max_idx = len(lines) - 1
-    if line_no >= max_idx:
+    if line_no == max_idx:
         return max_idx
 
     idx = line_no + 1
     while idx < max_idx:
-        line = view.substr(lines[idx])
-        if is_parent_expression(line):
+        if is_parent_expression(lines[idx]):
             return idx
         idx = idx + 1
 
@@ -89,17 +87,22 @@ class Parinfer(sublime_plugin.EventListener):
     def run_parinfer(self, view):
         current_status = view.get_status(STATUS_KEY)
 
-        # exit early if Parinfer is not enabled on this view
+        # exit if Parinfer is not enabled on this view
         if current_status != INDENT_STATUS and current_status != PAREN_STATUS:
             return
 
         whole_region = sublime.Region(0, view.size())
-        all_lines = view.lines(whole_region)
+        all_text = view.substr(whole_region)
+        lines = all_text.split("\n")
+        # add a newline at the end of the file if there is not one
+        if lines[-1] != "":
+            lines.append("")
+
         selections = view.sel()
         first_cursor = selections[0].begin()
         cursor_row, cursor_col = view.rowcol(first_cursor)
-        start_line = find_start_parent_expression(all_lines, cursor_row, view)
-        end_line = find_end_parent_expression(all_lines, cursor_row, view)
+        start_line = find_start_parent_expression(lines, cursor_row)
+        end_line = find_end_parent_expression(lines, cursor_row)
         start_point = view.text_point(start_line, 0)
         end_point = view.text_point(end_line, 0)
         region = sublime.Region(start_point, end_point)
