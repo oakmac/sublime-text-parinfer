@@ -1,5 +1,5 @@
 ## Sublime Text plugin for Parinfer
-## v0.1.0
+## v0.2.0
 ## https://github.com/oakmac/sublime-text-parinfer
 ##
 ## More information about Parinfer can be found here:
