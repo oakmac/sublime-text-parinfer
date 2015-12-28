@@ -9,43 +9,31 @@
 ## Released under the ISC license
 ## https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
 
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 import functools
-import json
-import os.path, shutil
 import re
-from parinfer import indent_mode, paren_mode
+from .parinfer import indent_mode, paren_mode
+
+try:
+    basestring
+except NameError:
+    basestring = str
 
 # constants
 DEBOUNCE_INTERVAL_MS = 50
 STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
 INDENT_STATUS = 'Parinfer: Indent'
-DEFAULT_CONFIG_FILE = './default-config.json'
-CONFIG_FILE = './config.json'
 PARENT_EXPRESSION_RE = re.compile(r"^\([a-zA-Z]")
 
-# create the config file from the default if it is not there
-if not os.path.isfile(CONFIG_FILE):
-    shutil.copy(DEFAULT_CONFIG_FILE, CONFIG_FILE)
 
-# load the config
-with open(CONFIG_FILE) as config_json:
-    CONFIG = json.load(config_json)
+def get_setting(view, key):
+    settings = view.settings().get('Parinfer')
+    if settings is None:
+        settings = sublime.load_settings('Parinfer.sublime-settings')
+    return settings.get(key)
 
-# Should we automatically start Parinfer on this file?
-def should_start_parinfer(filename):
-    # False if filename is not a string
-    if isinstance(filename, basestring) is not True:
-        return False
-
-    # check the extensions in CONFIG
-    for extension in CONFIG['file_extensions']:
-        if filename.endswith(extension):
-            return True
-
-    # didn't find anything; do not automatically start Parinfer
-    return False
 
 def is_parent_expression(txt):
     return re.match(PARENT_EXPRESSION_RE, txt) != None
@@ -83,6 +71,20 @@ class Parinfer(sublime_plugin.EventListener):
         # stateful - holds our last update
         self.last_update_text = None
 
+    # Should we automatically start Parinfer on this file?
+    def should_start(self, view):
+        # False if filename is not a string
+        filename = view.file_name()
+        if isinstance(filename, basestring) is not True:
+            return False
+
+        # check the extensions in CONFIG
+        for extension in get_setting(view, 'file_extensions'):
+            if filename.endswith(extension):
+                return True
+
+        # didn't find anything; do not automatically start Parinfer
+        return False
     # run Parinfer on the file
     def run_parinfer(self, view):
         current_status = view.get_status(STATUS_KEY)
@@ -162,7 +164,8 @@ class Parinfer(sublime_plugin.EventListener):
     # fires when a file is finished loading
     def on_load(self, view):
         # exit early if we do not recognize this file extension
-        if not should_start_parinfer(view.file_name()):
+
+        if not self.should_start(view):
             return
 
         # run Paren Mode on the whole file

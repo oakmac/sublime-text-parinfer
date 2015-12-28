@@ -1,0 +1,9 @@
+{
+  "file_extensions": [
+    ".clj",
+    ".cljs",
+    ".cljc",
+    ".lfe",
+    ".rkt"
+  ]
+}
