@@ -65,52 +65,51 @@ def find_end_parent_expression(lines, line_no):
 
     return max_idx
 
-class Parinfer(sublime_plugin.EventListener):
-    def __init__(self):
-        # stateful debounce counter
-        self.pending = 0
 
-        # stateful - holds our last update
-        self.last_update_text = None
+class ParinferCommand(sublime_plugin.TextCommand):
+    # stateful - holds our last update
+    last_update_text = None
 
-    # Should we automatically start Parinfer on this file?
-    def should_start(self, view):
+    def should_start(self):
         # False if filename is not a string
-        filename = view.file_name()
+        filename = self.view.file_name()
         if isinstance(filename, basestring) is not True:
             return False
 
-        # check the extensions in CONFIG
-        for extension in get_setting(view, 'file_extensions'):
+        # check the extensions in settings
+        for extension in get_setting(self.view, 'file_extensions'):
             if filename.endswith(extension):
                 return True
 
         # didn't find anything; do not automatically start Parinfer
         return False
-    # run Parinfer on the file
-    def run_parinfer(self, view):
-        current_status = view.get_status(STATUS_KEY)
+
+    def run(self, edit):
+        if not self.should_start():
+            return
+
+        current_status = self.view.get_status(STATUS_KEY)
 
         # exit if Parinfer is not enabled on this view
         if current_status != INDENT_STATUS and current_status != PAREN_STATUS:
             return
 
-        whole_region = sublime.Region(0, view.size())
-        all_text = view.substr(whole_region)
+        whole_region = sublime.Region(0, self.view.size())
+        all_text = self.view.substr(whole_region)
         lines = all_text.split("\n")
         # add a newline at the end of the file if there is not one
         if lines[-1] != "":
             lines.append("")
 
-        selections = view.sel()
+        selections = self.view.sel()
         first_cursor = selections[0].begin()
-        cursor_row, cursor_col = view.rowcol(first_cursor)
+        cursor_row, cursor_col = self.view.rowcol(first_cursor)
         start_line = find_start_parent_expression(lines, cursor_row)
         end_line = find_end_parent_expression(lines, cursor_row)
-        start_point = view.text_point(start_line, 0)
-        end_point = view.text_point(end_line, 0)
+        start_point = self.view.text_point(start_line, 0)
+        end_point = self.view.text_point(end_line, 0)
         region = sublime.Region(start_point, end_point)
-        text = view.substr(region)
+        text = self.view.substr(region)
         modified_cursor_row = cursor_row - start_line
 
         # exit early if there has been no change since our last update
@@ -129,28 +128,43 @@ class Parinfer(sublime_plugin.EventListener):
         result = parinfer_fn(text, options)
 
         if result['success']:
-            # begin edit
-            e = view.begin_edit()
-
             # update the buffer
-            view.replace(e, region, result['text'])
+            self.view.replace(edit, region, result['text'])
 
             # update the cursor
-            pt = view.text_point(cursor_row, cursor_col)
-            view.sel().clear()
-            view.sel().add(sublime.Region(pt))
-
-            # end edit
-            view.end_edit(e)
+            pt = self.view.text_point(cursor_row, cursor_col)
+            self.view.sel().clear()
+            self.view.sel().add(sublime.Region(pt))
 
             # save the text of this update so we don't have to process it again
             self.last_update_text = result['text']
+
+
+class Parinfer(sublime_plugin.EventListener):
+    def __init__(self):
+        # stateful debounce counter
+        self.pending = 0
+
+    # Should we automatically start Parinfer on this file?
+    def should_start(self, view):
+        # False if filename is not a string
+        filename = view.file_name()
+        if isinstance(filename, basestring) is not True:
+            return False
+
+        # check the extensions in CONFIG
+        for extension in get_setting(view, 'file_extensions'):
+            if filename.endswith(extension):
+                return True
+
+        # didn't find anything; do not automatically start Parinfer
+        return False
 
     # debounce intermediary
     def handle_timeout(self, view):
         self.pending = self.pending - 1
         if self.pending == 0:
-            self.run_parinfer(view)
+            view.run_command('parinfer')
 
     # fires everytime the editor is modified; basically calls a
     # debounced run_parinfer
