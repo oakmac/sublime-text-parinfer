@@ -1,13 +1,13 @@
-## Sublime Text plugin for Parinfer
-## v0.2.0
-## https://github.com/oakmac/sublime-text-parinfer
-##
-## More information about Parinfer can be found here:
-## http://shaunlebron.github.io/parinfer/
-##
-## Copyright (c) 2015, Chris Oakman and other contributors
-## Released under the ISC license
-## https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
+# Sublime Text plugin for Parinfer
+# v0.2.0
+# https://github.com/oakmac/sublime-text-parinfer
+#
+# More information about Parinfer can be found here:
+# http://shaunlebron.github.io/parinfer/
+#
+# Copyright (c) 2015, Chris Oakman and other contributors
+# Released under the ISC license
+# https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
 
 import sublime
 import sublime_plugin
@@ -36,7 +36,8 @@ def get_setting(view, key):
 
 
 def is_parent_expression(txt):
-    return re.match(PARENT_EXPRESSION_RE, txt) != None
+    return re.match(PARENT_EXPRESSION_RE, txt) is not None
+
 
 def find_start_parent_expression(lines, line_no):
     if line_no == 0:
@@ -49,6 +50,7 @@ def find_start_parent_expression(lines, line_no):
         idx = idx - 1
 
     return 0
+
 
 def find_end_parent_expression(lines, line_no):
     max_idx = len(lines) - 1
@@ -118,11 +120,9 @@ class Parinfer(sublime_plugin.EventListener):
         options = {'cursorLine': modified_cursor_row, 'cursorX': cursor_col}
 
         # specify the Parinfer mode
-        mode = 'indent'
         parinfer_fn = indent_mode
         if current_status == PAREN_STATUS:
             # TODO: add options.cursorDx here
-            mode = 'paren'
             parinfer_fn = paren_mode
 
         # run Parinfer on the text
@@ -152,10 +152,12 @@ class Parinfer(sublime_plugin.EventListener):
         if self.pending == 0:
             self.run_parinfer(view)
 
-    # fires everytime the editor is modified; basically calls a debounced run_parinfer
+    # fires everytime the editor is modified; basically calls a
+    # debounced run_parinfer
     def on_modified(self, view):
         self.pending = self.pending + 1
-        sublime.set_timeout(functools.partial(self.handle_timeout, view), DEBOUNCE_INTERVAL_MS)
+        sublime.set_timeout(
+            functools.partial(self.handle_timeout, view), DEBOUNCE_INTERVAL_MS)
 
     # fires everytime the cursor is moved
     def on_selection_modified(self, view):
@@ -164,7 +166,6 @@ class Parinfer(sublime_plugin.EventListener):
     # fires when a file is finished loading
     def on_load(self, view):
         # exit early if we do not recognize this file extension
-
         if not self.should_start(view):
             return
 
@@ -175,7 +176,8 @@ class Parinfer(sublime_plugin.EventListener):
         result = paren_mode(all_text, None)
 
         # TODO:
-        # - what to do when paren mode fails on a new file? show them a message?
+        # - what to do when paren mode fails on a new file?
+        #   show them a message?
         # - warn them before applying Paren Mode changes?
 
         if result['success']:
@@ -188,6 +190,7 @@ class Parinfer(sublime_plugin.EventListener):
             # drop them into Indent Mode
             view.set_status(STATUS_KEY, INDENT_STATUS)
 
+
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         # update the status bar
@@ -196,6 +199,7 @@ class ParinferToggleOnCommand(sublime_plugin.TextCommand):
             self.view.set_status(STATUS_KEY, PAREN_STATUS)
         else:
             self.view.set_status(STATUS_KEY, INDENT_STATUS)
+
 
 class ParinferToggleOffCommand(sublime_plugin.TextCommand):
     def run(self, edit):
