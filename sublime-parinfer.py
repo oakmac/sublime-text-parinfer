@@ -13,7 +13,12 @@ import sublime
 import sublime_plugin
 import functools
 import re
-from .parinfer import indent_mode, paren_mode
+
+try:
+    # Python 2
+    from parinfer import indent_mode, paren_mode
+except ImportError:
+    from .parinfer import indent_mode, paren_mode
 
 try:
     basestring
