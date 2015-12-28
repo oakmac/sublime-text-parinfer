@@ -17,13 +17,14 @@ These instructions are for Mac and should work with minimal changes on Linux. I
 will add instructions for Windows the next time I get a chance to use a Windows
 machine. PRs welcome here :)
 
-1. Clone this repo to your local machine
-   `git clone git@github.com:oakmac/sublime-text-parinfer.git`
-1. Create a symlink to your Packages folder. On Mac, assuming you cloned into
-   your homedir, this would be
-   `ln -s ~/sublime-text-parinfer ~/Library/Application Support/Sublime Text 2/Packages/Parinfer`
-1. That's it! Sublime Text should automatically detect the folder and activate
-   the plugin.
+```
+cd ~
+git clone git@github.com:oakmac/sublime-text-parinfer.git
+ln -s ~/sublime-text-parinfer ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Parinfer
+```
+
+That's it! This symlinks the parinfer repo to the Sublime Text Package directory.
+Sublime Text should automatically detect the folder and activate the plugin.
 
 ## Usage
 
