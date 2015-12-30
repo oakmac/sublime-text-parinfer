@@ -1,3 +1,6 @@
+## 0.3.0
+* Add support for Windows and Sublime Text 3 (thank you @JoakimLofgren !)
+
 ## 0.2.0 - First Release
 * Initial release! [Parinfer] now usable from [Sublime Text 2] :)
 
