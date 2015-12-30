@@ -17,10 +17,19 @@ These instructions are for Mac and should work with minimal changes on Linux. I
 will add instructions for Windows the next time I get a chance to use a Windows
 machine. PRs welcome here :)
 
+###Linux / OSX
+
 ```
 cd ~
 git clone git@github.com:oakmac/sublime-text-parinfer.git
 ln -s ~/sublime-text-parinfer ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Parinfer
+```
+
+### Windows
+
+```
+cd %APPDATA%\Sublime Text 2\Packages
+git clone https://github.com/oakmac/sublime-text-parinfer.git Parinfer
 ```
 
 That's it! This symlinks the parinfer repo to the Sublime Text Package directory.
@@ -32,8 +41,7 @@ Once the package has been installed, it will automatically load in the
 background and watch for file extensions found in a config
 file. The default file extensions are: `.clj` `.cljs` `.cljc` `.lfe` `.rkt`
 
-You can edit these file extensions in the `config.json` file found in the
-`Packages/Parinfer` folder where you installed the plugin. (Note: [Issue #24] has ben set up to improve the usability of this.)
+You can change these by open `Preferences>Package Settings>Parinfer>Settings - Default`
 
 When a file is first opened, Parinfer runs [Paren Mode] on the entire file and
 then turns on [Indent Mode] if Paren Mode succeeded (ie: the file contained
