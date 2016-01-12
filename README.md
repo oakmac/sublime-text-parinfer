@@ -2,22 +2,13 @@
 
 A [Parinfer] package for [Sublime Text].
 
-## Development Status
-
-Some notable items are still in development:
-
-* [ ] Set up [Package Control](https://packagecontrol.io/) ([Issue #4](https://github.com/oakmac/sublime-text-parinfer/issues/4))
-* [ ] Sublime Text 3 support ([Issue #10](https://github.com/oakmac/sublime-text-parinfer/issues/10) and [PR #16](https://github.com/oakmac/sublime-text-parinfer/pull/16))
-
 ## Installation
-
-**A [pull request] has been submitted to Package Control and is being tracked at [Issue #4].**
 
 These instructions are for Mac and should work with minimal changes on Linux. I
 will add instructions for Windows the next time I get a chance to use a Windows
 machine. PRs welcome here :)
 
-###Linux / OSX
+### Linux / OSX
 
 ```
 cd ~
@@ -89,7 +80,6 @@ Please report bugs and feature requests in the [issues].
 [Parinfer]:http://shaunlebron.github.io/parinfer/
 [Sublime Text]:http://www.sublimetext.com/
 [Package Control]:https://packagecontrol.io/
-[pull request]:https://github.com/wbond/package_control_channel/pull/5079
 [Issue #24]:https://github.com/oakmac/sublime-text-parinfer/issues/24
 [Issue #4]:https://github.com/oakmac/sublime-text-parinfer/issues/4
 [Paren Mode]:http://shaunlebron.github.io/parinfer/#paren-mode
