@@ -58,10 +58,22 @@ Parinfer --> Settings - Default
 
 ### Opening a File
 
-When a file is first opened, Parinfer runs [Paren Mode] on the entire file and
-then turns on [Indent Mode] if Paren Mode succeeded (ie: the file contained
-balanced parens). See [Fixing existing files] for more information on why this
-happens.
+When a file with a recognized extension is first opened, Parinfer runs [Paren
+Mode] on the entire file and one of three things will happen (in order of
+likelihood):
+
+* **The file was unchanged.** You will be automatically dropped into Indent
+  Mode. This is the most likely scenario once you start using Parinfer
+  regularly.
+* **Paren Mode changed the file.** The buffer will receive the changes and you
+  will be dropped into Indent Mode. This is most likely to happen when you first
+  start using Parinfer on an existing file.
+* **Paren Mode failed.** This is almost certainly caused by having unbalanced
+  parens in your file (ie: it will not compile). The text will not be changed
+  and you will be dropped into Paren Mode in order to fix the problem.
+
+Running Paren Mode is a necessary first step before Indent Mode can be safely
+turned on. See [Fixing existing files] for more information.
 
 Please be aware that - depending on the indentation and formatting in your Lisp
 files - this initial processing may result in a large diff the first time it
@@ -116,5 +128,5 @@ Please report bugs and feature requests in the [issues].
 [Fixing existing files]:http://shaunlebron.github.io/parinfer/#fixing-existing-files
 [issues]:https://github.com/oakmac/sublime-text-parinfer/issues
 [Issue #23]:https://github.com/oakmac/sublime-text-parinfer/issues/23
-[ISC License]:LICENSE.md
 [catching very hard-to-find bugs]:https://github.com/oakmac/atom-parinfer/commit/d4b49ec2636fd0530f3f2fbca9924db6c97d3a8f
+[ISC License]:LICENSE.md
