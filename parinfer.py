@@ -1,5 +1,5 @@
 ## Parinfer.py - a Parinfer implementation in Python
-## v0.5.0
+## v0.7.0
 ## https://github.com/oakmac/parinfer.py
 ##
 ## More information about Parinfer can be found here:
@@ -19,13 +19,16 @@ INDENT_MODE = 'INDENT_MODE'
 PAREN_MODE = 'PAREN_MODE'
 
 BACKSLASH = '\\'
-COMMA = ','
+BLANK_SPACE = ' '
+DOUBLE_SPACE = '  '
 DOUBLE_QUOTE = '"'
 NEWLINE = '\n'
 SEMICOLON = ';'
 TAB = '\t'
 
 LINE_ENDING_REGEX = re.compile(r"\r?\n")
+
+CLOSE_PARENS = frozenset(['}', ')', ']'])
 
 PARENS = {
     '{': '}',
@@ -35,16 +38,6 @@ PARENS = {
     '(': ')',
     ')': '(',
 }
-
-#-------------------------------------------------------------------------------
-# Misc
-#-------------------------------------------------------------------------------
-
-def isOpenParen(c):
-    return c == "{" or c == "(" or c == "["
-
-def isCloseParen(c):
-    return c == "}" or c == ")" or c == "]"
 
 #-------------------------------------------------------------------------------
 # Result Structure
@@ -149,7 +142,7 @@ def replaceWithinString(orig, start, end, replace):
 def removeWithinString(orig, start, end):
     return orig[:start] + orig[end:]
 
-def multiplyString(text, n):
+def repeatString(text, n):
     result = ""
     for i in range(n):
         result = result + text
@@ -198,12 +191,12 @@ def commitChar(result, origCh):
 # Misc Utils
 #-------------------------------------------------------------------------------
 
-def clamp(val, minN, maxN):
+def clamp(valN, minN, maxN):
     if minN is not None:
-        val = max(minN, val)
+        valN = max(minN, valN)
     if maxN is not None:
-        val = min(maxN, val)
-    return val
+        valN = min(maxN, valN)
+    return valN
 
 def peek(arr):
     arrLen = len(arr)
@@ -248,7 +241,7 @@ def onCloseParen(result):
 
 def onTab(result):
     if result['isInCode']:
-        result['ch'] = '  '
+        result['ch'] = DOUBLE_SPACE
 
 def onSemicolon(result):
     if result['isInCode']:
@@ -282,24 +275,31 @@ def afterBackslash(result):
             raise ParinferError(err)
         onNewLine(result)
 
+CHAR_DISPATCH = {
+    '(': onOpenParen,
+    '{': onOpenParen,
+    '[': onOpenParen,
+
+    ')': onCloseParen,
+    '}': onCloseParen,
+    ']': onCloseParen,
+
+    DOUBLE_QUOTE: onQuote,
+    SEMICOLON: onSemicolon,
+    BACKSLASH: onBackslash,
+    TAB: onTab,
+    NEWLINE: onNewLine,
+}
+
 def onChar(result):
     ch = result['ch']
+
     if result['isEscaping']:
         afterBackslash(result)
-    elif isOpenParen(ch):
-        onOpenParen(result)
-    elif isCloseParen(ch):
-        onCloseParen(result)
-    elif ch == DOUBLE_QUOTE:
-        onQuote(result)
-    elif ch == SEMICOLON:
-        onSemicolon(result)
-    elif ch == BACKSLASH:
-        onBackslash(result)
-    elif ch == TAB:
-        onTab(result)
-    elif ch == NEWLINE:
-        onNewLine(result)
+    else:
+        charFn = CHAR_DISPATCH.get(ch, None)
+        if charFn is not None:
+            charFn(result)
 
     result['isInCode'] = (not result['isInComment'] and not result['isInStr'])
 
@@ -341,10 +341,10 @@ def updateParenTrailBounds(result):
     ch = result['ch']
 
     shouldReset = (result['isInCode'] and
-                   not isCloseParen(ch) and
                    ch != "" and
-                   (ch != " " or prevCh == BACKSLASH) and
-                   ch != "  ")
+                   ch not in CLOSE_PARENS and
+                   (ch != BLANK_SPACE or prevCh == BACKSLASH) and
+                   ch != DOUBLE_SPACE)
 
     if shouldReset:
         result['parenTrail']['lineNo'] = result['lineNo']
@@ -353,21 +353,21 @@ def updateParenTrailBounds(result):
         result['parenTrail']['openers'] = []
         result['maxIndent'] = None
 
-def truncateParenTrailBounds(result):
+def clampParenTrailToCursor(result):
     startX = result['parenTrail']['startX']
     endX = result['parenTrail']['endX']
 
-    isCursorBlocking = (isCursorOnRight(result, startX) and
+    isCursorClamping = (isCursorOnRight(result, startX) and
                         not isCursorInComment(result))
 
-    if isCursorBlocking:
+    if isCursorClamping:
         newStartX = max(startX, result['cursorX'])
         newEndX = max(endX, result['cursorX'])
 
         line = result['lines'][result['lineNo']]
         removeCount = 0
         for i in range(startX, newStartX):
-            if isCloseParen(line[i]):
+            if line[i] in CLOSE_PARENS:
                 removeCount = removeCount + 1
 
         for i in range(removeCount):
@@ -412,7 +412,7 @@ def cleanParenTrail(result):
     newTrail = ""
     spaceCount = 0
     for i in range(startX, endX):
-        if isCloseParen(line[i]):
+        if line[i] in CLOSE_PARENS:
             newTrail = newTrail + line[i]
         else:
             spaceCount = spaceCount + 1
@@ -431,10 +431,11 @@ def appendParenTrail(result):
 
 def finishNewParenTrail(result):
     if result['mode'] == INDENT_MODE:
-        truncateParenTrailBounds(result)
+        clampParenTrailToCursor(result)
         removeParenTrail(result)
     elif result['mode'] == PAREN_MODE:
-        cleanParenTrail(result)
+        if result['lineNo'] != result['cursorLine']:
+            cleanParenTrail(result)
 
 #-------------------------------------------------------------------------------
 # Indentation functions
@@ -454,7 +455,7 @@ def correctIndent(result):
     newIndent = clamp(newIndent, minIndent, maxIndent)
 
     if newIndent != origIndent:
-        indentStr = multiplyString(" ", newIndent)
+        indentStr = repeatString(BLANK_SPACE, newIndent)
         replaceWithinLine(result, result['lineNo'], 0, origIndent, indentStr)
         result['x'] = newIndent
         result['indentDelta'] = result['indentDelta'] + newIndent - origIndent
@@ -484,7 +485,7 @@ def onLeadingCloseParen(result):
                 appendParenTrail(result)
 
 def onIndent(result):
-    if isCloseParen(result['ch']):
+    if result['ch'] in CLOSE_PARENS:
         onLeadingCloseParen(result)
     elif result['ch'] == SEMICOLON:
         # comments don't count as indentation points
@@ -505,7 +506,7 @@ def processChar(result, ch):
     if result['mode'] == PAREN_MODE:
         handleCursorDelta(result)
 
-    if result['trackingIndent'] and ch != " " and ch != TAB:
+    if result['trackingIndent'] and ch != BLANK_SPACE and ch != TAB:
         onIndent(result)
 
     if result['skipChar']:
