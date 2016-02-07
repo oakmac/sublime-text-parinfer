@@ -1,5 +1,5 @@
 # Sublime Text plugin for Parinfer
-# v0.5.0
+# v0.6.0+dev
 # https://github.com/oakmac/sublime-text-parinfer
 #
 # More information about Parinfer can be found here:
@@ -45,8 +45,9 @@ def is_parent_expression(txt):
 
 
 def find_start_parent_expression(lines, line_no):
-    if line_no == 0:
-        return line_no
+    line_no = line_no - 4
+    if line_no < 0:
+        return 0
 
     idx = line_no - 1
     while idx > 0:
@@ -59,7 +60,8 @@ def find_start_parent_expression(lines, line_no):
 
 def find_end_parent_expression(lines, line_no):
     max_idx = len(lines) - 1
-    if line_no == max_idx:
+    line_no = line_no + 4
+    if line_no > max_idx:
         return max_idx
 
     idx = line_no + 1

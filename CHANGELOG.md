@@ -1,3 +1,6 @@
+## 0.6.0 - **IN PROGRESS**
+* Fix a bug with the parent expression hack [Issue #19]
+
 ## 0.5.0 - 2016-02-03
 * Update to [parinfer.py] v0.7.0
 
@@ -14,3 +17,4 @@
 [Sublime Text 2]:http://www.sublimetext.com/
 [Joakim Löfgren]:https://github.com/JoakimLofgren
 [parinfer.py]:https://github.com/oakmac/parinfer.py
+[Issue #19]:https://github.com/oakmac/sublime-text-parinfer/issues/19
