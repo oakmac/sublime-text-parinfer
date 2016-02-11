@@ -1,5 +1,7 @@
-## 0.6.0 - **IN PROGRESS**
+## 0.6.0 - 2016-02-11
 * Fix a bug with the parent expression hack [Issue #19]
+* Fix "undo" [Issue #20]
+* Do not break selection [Issue #25] and [Issue #28]
 
 ## 0.5.0 - 2016-02-03
 * Update to [parinfer.py] v0.7.0
@@ -18,3 +20,6 @@
 [Joakim Löfgren]:https://github.com/JoakimLofgren
 [parinfer.py]:https://github.com/oakmac/parinfer.py
 [Issue #19]:https://github.com/oakmac/sublime-text-parinfer/issues/19
+[Issue #20]:https://github.com/oakmac/sublime-text-parinfer/issues/20
+[Issue #25]:https://github.com/oakmac/sublime-text-parinfer/issues/25
+[Issue #28]:https://github.com/oakmac/sublime-text-parinfer/issues/28
