@@ -77,16 +77,22 @@ def find_end_parent_expression(lines, line_no):
 # NOTE: this needs to be in it's own command so we can override "undo"
 class ParinferApplyCommand(sublime_plugin.TextCommand):
     def run(self, edit, start_line = 0, end_line = 0, cursor_row = 0, cursor_col = 0, result_text = ''):
+        # get the current selection
+        current_sel = self.view.sel()
+        end_cursor = current_sel[0].end()
+        end_row, end_col = self.view.rowcol(end_cursor)
+
         # update the buffer
         start_point = self.view.text_point(start_line, 0)
         end_point = self.view.text_point(end_line, 0)
         region = sublime.Region(start_point, end_point)
         self.view.replace(edit, region, result_text)
 
-        # update the cursor
-        pt = self.view.text_point(cursor_row, cursor_col)
+        # re-apply their selection
+        pt1 = self.view.text_point(cursor_row, cursor_col)
+        pt2 = self.view.text_point(end_row, end_col)
         self.view.sel().clear()
-        self.view.sel().add(sublime.Region(pt))
+        self.view.sel().add(sublime.Region(pt1, pt2))
 
 
 # NOTE: This command inspects the text around the cursor to determine if we need
