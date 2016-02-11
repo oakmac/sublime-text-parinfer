@@ -110,9 +110,6 @@ probably a correct assumption, but might break inside multi-line strings or
 other non-standard circumstances. This is tracked at [Issue #23]; please add to
 that if you experience problems.
 
-Please take note: this is a new extension and Parinfer itself is very new.
-Please report bugs and feature requests in the [issues].
-
 ## License
 
 [ISC license]
