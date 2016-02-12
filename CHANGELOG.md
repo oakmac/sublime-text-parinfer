@@ -1,3 +1,6 @@
+## 0.8.0 - 2016-02-12
+* Drop support for <kbd>Ctrl</kbd> hotkeys on Mac
+
 ## 0.7.0 - 2016-02-12
 * Use <kbd>Cmd</kbd> hotkeys on Mac (thank you [Shaun LeBron]!)
 

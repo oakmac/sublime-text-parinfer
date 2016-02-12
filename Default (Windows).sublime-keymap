@@ -1,0 +1,14 @@
+[
+	{
+	  "keys": ["ctrl+shift+9"],
+		"command": "parinfer_toggle_on"
+	},
+	{
+	  "keys": ["ctrl+shift+0"],
+		"command": "parinfer_toggle_off"
+	},
+	{
+		"keys": ["ctrl+z"],
+		"command": "parinfer_undo"
+	}
+]
