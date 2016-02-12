@@ -1,3 +1,6 @@
+## 0.7.0 - 2016-02-12
+* Use <kbd>Cmd</kbd> hotkeys on Mac (thank you [Shaun LeBron]!)
+
 ## 0.6.0 - 2016-02-11
 * Fix a bug with the parent expression hack [Issue #19]
 * Fix "undo" [Issue #20]
@@ -18,6 +21,7 @@
 [Parinfer]:https://shaunlebron.github.io/parinfer/
 [Sublime Text 2]:http://www.sublimetext.com/
 [Joakim Löfgren]:https://github.com/JoakimLofgren
+[Shaun LeBron]:https://github.com/shaunlebron
 [parinfer.py]:https://github.com/oakmac/parinfer.py
 [Issue #19]:https://github.com/oakmac/sublime-text-parinfer/issues/19
 [Issue #20]:https://github.com/oakmac/sublime-text-parinfer/issues/20
