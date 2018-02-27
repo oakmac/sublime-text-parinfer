@@ -197,8 +197,23 @@ class Parinfer(sublime_plugin.EventListener):
 
     # fires when a file is finished loading
     def on_load(self, view):
+        # HACK: apparently, if we don't print the current view won't run the command during startup
+        print('Refreshing Parinfer on: ' + view.file_name())
+        view.run_command('parinfer_refresh')
+
+
+def plugin_loaded():
+    # workaround https://github.com/SublimeTextIssues/Core/issues/5
+    for view in sublime.active_window().views():
+        Parinfer.on_load(None, view)
+
+
+class ParinferRefreshCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        view = self.view
+
         # exit early if we do not recognize this file extension
-        if not self.should_start(view):
+        if not Parinfer.should_start(None, view):
             return
 
         # run Paren Mode on the whole file
@@ -214,9 +229,7 @@ class Parinfer(sublime_plugin.EventListener):
         if result['success']:
             # update the buffer if we need to
             if all_text != result['text']:
-                e = view.begin_edit()
-                view.replace(e, whole_region, result['text'])
-                view.end_edit(e)
+                view.replace(edit, whole_region, result['text'])
 
             # drop them into Indent Mode
             view.set_status(STATUS_KEY, INDENT_STATUS)
