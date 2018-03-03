@@ -197,9 +197,9 @@ class Parinfer(sublime_plugin.EventListener):
 
     # fires when a file is finished loading
     def on_load(self, view):
-        # HACK: apparently, if we don't print the current view won't run the command during startup
-        print('Refreshing Parinfer on: ' + view.file_name())
-        view.run_command('parinfer_refresh')
+        # workaround https://forum.sublimetext.com/t/on-load-induced-by-preview-in-goto-anything/6931/7
+        if view.window() != None:
+            view.run_command('parinfer_refresh')
 
 
 def plugin_loaded():
