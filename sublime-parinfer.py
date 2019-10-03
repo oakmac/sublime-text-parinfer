@@ -14,6 +14,9 @@ import sublime_plugin
 import functools
 import re
 
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
+
 try:
     # Python 2
     from parinfer import indent_mode, paren_mode
@@ -31,6 +34,34 @@ STATUS_KEY = 'parinfer'
 PAREN_STATUS = 'Parinfer: Paren'
 INDENT_STATUS = 'Parinfer: Indent'
 PARENT_EXPRESSION_RE = re.compile(r"^\([a-zA-Z]")
+SYNTAX_LANGUAGE_RE = r"([\w\d\s]*)(\.sublime-syntax)"
+
+def get_syntax_language(view):
+    regex_res = re.search(SYNTAX_LANGUAGE_RE, view.settings().get("syntax"))
+    if regex_res:
+        return regex_res.group(1)
+    else:
+        None
+
+def get_comment_char(view):
+    srclang = get_syntax_language(view)    
+    if (srclang == None):
+        return ';'
+
+    srclang = srclang.lower()    
+
+    default = get_setting(view, 'default_comment_character')    
+    if (default == None):
+        return ';'    
+
+    langs = get_setting(view, 'comment_character_mapping')        
+    if (langs == None):
+        return ';'
+
+    char = langs.get(srclang)
+    if (char == None):
+        return ';'
+    return char
 
 
 def get_setting(view, key):
@@ -99,7 +130,7 @@ class ParinferApplyCommand(sublime_plugin.TextCommand):
 #       to run Parinfer on it. It does not modify the buffer directly.
 class ParinferInspectCommand(sublime_plugin.TextCommand):
     # holds the text of the last update
-    last_update_text = None
+    last_update_text = None    
 
     def run(self, edit):
         current_view = self.view
@@ -131,7 +162,11 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
         if text == self.last_update_text:
             return
 
-        parinfer_options = {'cursorLine': modified_cursor_row, 'cursorX': cursor_col}
+        parinfer_options = {
+            'cursorLine': modified_cursor_row, 
+            'cursorX': cursor_col,
+            'commentChar': get_comment_char(self.view)
+        }
 
         # specify the Parinfer mode
         parinfer_fn = indent_mode
