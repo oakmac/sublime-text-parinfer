@@ -4,6 +4,11 @@
     ".cljs",
     ".cljc",
     ".lfe",
-    ".rkt"
-  ]
+    ".rkt",
+    ".janet"
+  ],
+  "default_comment_character": ";",
+  "comment_character_mapping": {
+  	"janet": "#"
+  }
 }

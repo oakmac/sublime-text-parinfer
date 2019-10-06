@@ -23,7 +23,7 @@ BLANK_SPACE = ' '
 DOUBLE_SPACE = '  '
 DOUBLE_QUOTE = '"'
 NEWLINE = '\n'
-SEMICOLON = ';'
+COMMENT = ';'
 TAB = '\t'
 
 LINE_ENDING_REGEX = re.compile(r"\r?\n")
@@ -243,7 +243,7 @@ def onTab(result):
     if result['isInCode']:
         result['ch'] = DOUBLE_SPACE
 
-def onSemicolon(result):
+def onComment(result):    
     if result['isInCode']:
         result['isInComment'] = True
         result['commentX'] = result['x']
@@ -284,8 +284,8 @@ CHAR_DISPATCH = {
     '}': onCloseParen,
     ']': onCloseParen,
 
-    DOUBLE_QUOTE: onQuote,
-    SEMICOLON: onSemicolon,
+    DOUBLE_QUOTE: onQuote,    
+    COMMENT: onComment,
     BACKSLASH: onBackslash,
     TAB: onTab,
     NEWLINE: onNewLine,
@@ -487,9 +487,10 @@ def onLeadingCloseParen(result):
 def onIndent(result):
     if result['ch'] in CLOSE_PARENS:
         onLeadingCloseParen(result)
-    elif result['ch'] == SEMICOLON:
-        # comments don't count as indentation points
+    
+    elif result['ch'] == COMMENT:        
         result['trackingIndent'] = False
+
     elif result['ch'] != NEWLINE:
         onProperIndent(result)
 
@@ -562,8 +563,8 @@ def processError(result, e):
         result['error']['message'] = e['stack']
 
 def processText(text, options, mode):
-    result = initialResult(text, options, mode)
-
+    result = initialResult(text, options, mode)    
+    
     try:
         for line in result['origLines']:
             processLine(result, line)
@@ -608,9 +609,11 @@ def publicResult(result):
 #-------------------------------------------------------------------------------
 
 def indent_mode(text, options):
+    COMMENT = options['commentChar']
     result = processText(text, options, INDENT_MODE)
     return publicResult(result)
 
 def paren_mode(text, options):
+    COMMENT = options['commentChar']
     result = processText(text, options, PAREN_MODE)
     return publicResult(result)

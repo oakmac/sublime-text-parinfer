@@ -1,3 +1,6 @@
+## 0.8.1 - 2019-10-03
+* Add dynamic comment character
+
 ## 0.8.0 - 2016-02-12
 * Drop support for <kbd>Ctrl</kbd> hotkeys on Mac
 
