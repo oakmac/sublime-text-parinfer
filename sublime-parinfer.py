@@ -192,6 +192,26 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
                 }
                 sublime.set_timeout(lambda: current_view.run_command('parinfer_apply', cmd_options), 1)
 
+class ParinferParenOnOpen(sublime_plugin.TextCommand):
+    def run(self, edit):
+        # run Paren Mode on the whole file
+        whole_region = sublime.Region(0, self.view.size())
+        all_text = self.view.substr(whole_region)
+        result = paren_mode(all_text, None)
+
+        # TODO:
+        # - what to do when paren mode fails on a new file?
+        #   show them a message?
+        # - warn them before applying Paren Mode changes?
+
+        if result['success']:
+            # update the buffer if we need to
+            if all_text != result['text']:
+                self.view.replace(edit, whole_region, result['text'])
+
+            # drop them into Indent Mode
+            self.view.set_status(STATUS_KEY, INDENT_STATUS)
+
 
 class Parinfer(sublime_plugin.EventListener):
     def __init__(self):
@@ -237,25 +257,7 @@ class Parinfer(sublime_plugin.EventListener):
             return
 
         # run Paren Mode on the whole file
-        whole_region = sublime.Region(0, view.size())
-        all_text = view.substr(whole_region)
-        result = paren_mode(all_text, None)
-
-        # TODO:
-        # - what to do when paren mode fails on a new file?
-        #   show them a message?
-        # - warn them before applying Paren Mode changes?
-
-        if result['success']:
-            # update the buffer if we need to
-            if all_text != result['text']:
-                e = view.begin_edit()
-                view.replace(e, whole_region, result['text'])
-                view.end_edit(e)
-
-            # drop them into Indent Mode
-            view.set_status(STATUS_KEY, INDENT_STATUS)
-
+        view.run_command('parinfer_paren_on_open')
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, edit):
