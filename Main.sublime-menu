@@ -8,21 +8,17 @@
         "id": "package-settings",
         "children": [{
             "caption": "Parinfer",
-            "children": [{
-                "command": "open_file",
-                "args": {
-                    "file": "${packages}/Parinfer/Parinfer.sublime-settings"
-                },
-                "caption": "Settings – Default"
-            }, {
-                "command": "open_file",
-                "args": {
-                    "file": "${packages}/User/Parinfer.sublime-settings"
-                },
-                "caption": "Settings – User"
-            }, {
-                "caption": "-"
-            }]
+            "children": [
+                {
+                    "caption": "Settings",
+                    "command": "edit_settings",
+                    "args":
+                    {
+                      "base_file": "${packages}/Parinfer/Parinfer.sublime-settings",
+                      "default": "{\n\t$0\n}\n",
+                    }
+                }
+            ]
         }]
     }]
 }]

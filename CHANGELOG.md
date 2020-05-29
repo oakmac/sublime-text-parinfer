@@ -22,10 +22,10 @@
 * Add support for Windows and Sublime Text 3 (thank you [Joakim Löfgren]!)
 
 ## 0.2.0 - 2015-12-27 - First Release
-* Initial release! [Parinfer] now usable from [Sublime Text 2] :)
+* Initial release! [Parinfer] now usable from [Sublime Text] :)
 
 [Parinfer]:https://shaunlebron.github.io/parinfer/
-[Sublime Text 2]:http://www.sublimetext.com/
+[Sublime Text]:http://www.sublimetext.com/
 [Joakim Löfgren]:https://github.com/JoakimLofgren
 [Shaun LeBron]:https://github.com/shaunlebron
 [parinfer.py]:https://github.com/oakmac/parinfer.py
