@@ -7,8 +7,4 @@
 	  "keys": ["super+shift+0"],
 		"command": "parinfer_toggle_off"
 	},
-	{
-		"keys": ["super+z"],
-		"command": "parinfer_undo"
-	}
 ]

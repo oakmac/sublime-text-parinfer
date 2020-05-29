@@ -7,8 +7,4 @@
 	  "keys": ["ctrl+shift+0"],
 		"command": "parinfer_toggle_off"
 	},
-	{
-		"keys": ["ctrl+z"],
-		"command": "parinfer_undo"
-	}
 ]

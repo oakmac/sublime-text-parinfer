@@ -272,17 +272,26 @@ class ParinferToggleOffCommand(sublime_plugin.TextCommand):
         # remove from the status bar
         self.view.erase_status(STATUS_KEY)
 
-
 # override undo
-class ParinferUndoCommand(sublime_plugin.WindowCommand):
-    def run(self):
-        # check to see if the last command was a 'parinfer_apply'
-        active_view = self.window.active_view()
-        cmd_history = active_view.command_history(0)
+class ParinferUndoListener(sublime_plugin.EventListener):
+    def on_text_command(self, view, command_name, args):
+        # TODO: Only run in parinfer views?
+        # TODO: Simplify duplicated logic?
+        if command_name == 'undo':
+            # check to see if the last command was a 'parinfer_apply'
+            cmd_history = view.command_history(0)
 
-        # if so, run an extra "undo" to erase the changes
-        if cmd_history[0] == 'parinfer_apply':
-            self.window.run_command('undo')
+            # if so, run an extra "undo" to erase the changes
+            if cmd_history[0] == 'parinfer_apply':
+                view.run_command('undo')
 
-        # run "undo" as normal
-        self.window.run_command('undo')
+            # run "undo" as normal
+        elif command_name == 'redo':
+            # check to see if the command after next was a 'parinfer_apply'
+            cmd_history = view.command_history(2)
+
+            # if so, run an extra "redo" to erase the changes
+            if cmd_history[0] == 'parinfer_apply':
+                view.run_command('redo')
+
+            # run "redo" as normal
