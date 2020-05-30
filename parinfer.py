@@ -16,8 +16,6 @@ import sys
 # Constants
 #-------------------------------------------------------------------------------
 
-# None = -999
-
 INDENT_MODE = 'INDENT_MODE'
 PAREN_MODE = 'PAREN_MODE'
 
@@ -71,8 +69,8 @@ def transformChange(change):
     #      |[])
     #    ++^ newEndX, newEndLineNo
 
-    lastOldLineLen = len(oldLines[len(oldLines)-1])
-    lastNewLineLen = len(newLines[len(newLines)-1])
+    lastOldLineLen = len(oldLines[-1])
+    lastNewLineLen = len(newLines[-1])
 
     oldEndX = (change['x'] if len(oldLines) == 1 else 0) + lastOldLineLen
     newEndX = (change['x'] if len(newLines) == 1 else 0) + lastNewLineLen
@@ -203,14 +201,15 @@ class Result:
                 'errorPosCache: ' + str(self.errorPosCache) + '\n\t}')
 
     def __init__(self, text, options, mode, smart):
+        """Constructs a dictionary of the initial state."""
         super(Result, self).__init__()
 
         self.mode = mode                # [enum] - current processing mode (INDENT_MODE or PAREN_MODE)
         self.smart = smart              # [boolean] - smart mode attempts special user-friendly behavior
 
         self.origText = text            # [string] - original text
-        self.origCursorX = None    # [integer] - original cursorX option
-        self.origCursorLine = None # [integer] - original cursorLine option
+        self.origCursorX = None         # [integer] - original cursorX option
+        self.origCursorLine = None      # [integer] - original cursorLine option
 
                                         # [string array] - input lines that we process line-by-line char-by-char
         self.inputLines = re.split(LINE_ENDING_REGEX, text)
@@ -222,7 +221,7 @@ class Result:
         self.lineNo = -1                # [integer] - output line number we are on
         self.ch = ''                    # [string] - character we are processing (can be changed to indicate a replacement)
         self.x = 0                      # [integer] - output x position of the current character (ch)
-        self.indentX = None        # [integer] - x position of the indentation point if present
+        self.indentX = None             # [integer] - x position of the indentation point if present
 
         self.parenStack = []            # We track where we are in the Lisp tree by keeping a stack (array) of open-parens.
                                         # Stack elements are objects containing keys {ch, x, lineNo, indentDelta}
@@ -239,12 +238,12 @@ class Result:
         self.returnParens = False       # [boolean] - determines if we return `parens` described below
         self.parens = []                # [array of {lineNo, x, closer, children}] - paren tree if `returnParens` is h
 
-        self.cursorX = None        # [integer] - x position of the cursor
-        self.cursorLine = None     # [integer] - line number of the cursor
-        self.prevCursorX = None    # [integer] - x position of the previous cursor
-        self.prevCursorLine = None # [integer] - line number of the previous cursor
+        self.cursorX = None             # [integer] - x position of the cursor
+        self.cursorLine = None          # [integer] - line number of the cursor
+        self.prevCursorX = None         # [integer] - x position of the previous cursor
+        self.prevCursorLine = None      # [integer] - line number of the previous cursor
 
-        self.selectionStartLine = None # [integer] - line number of the current selection starting point
+        self.selectionStartLine = None  # [integer] - line number of the current selection starting point
 
         self.changes = None             # [object] - mapping change.key to a change object (please see `transformChange` for object structure)
 
@@ -253,7 +252,7 @@ class Result:
         self.isEscaped = False          # [boolean] - indicates if the current character is escaped (e.g. `\c`).  This may be inside string comment or code.
         self.isInStr = False            # [boolean] - indicates if we are currently inside a string
         self.isInComment = False        # [boolean] - indicates if we are currently inside a comment
-        self.commentX = None       # [integer] - x position of the start of comment on current line (if any)
+        self.commentX = None            # [integer] - x position of the start of comment on current line (if any)
 
         self.quoteDanger = False        # [boolean] - indicates if quotes are imbalanced inside of a comment (dangerous)
         self.trackingIndent = False     # [boolean] - are we looking for the indentation point of the current line?
@@ -298,7 +297,7 @@ class Result:
                 self.origCursorX = options['cursorX']
             if 'cursorLine' in options:
                 self.cursorLine = options['cursorLine']
-                self.origCursorLine     = options['cursorLine']
+                self.origCursorLine = options['cursorLine']
             if 'prevCursorX' in options:
                 self.prevCursorX = options['prevCursorX']
             if 'prevCursorLine' in options:
@@ -313,18 +312,6 @@ class Result:
                 self.forceBalance = options['forceBalance']
             if 'returnParens' in options:
                 self.returnParens = options['returnParens']
-
-    # def isClosable(self):
-    #     ch = self.ch
-    #     closer = ch in CLOSE_PARENS and not self.isEscaped
-    #     # closer = ch in ('}', ')', ']') and not result.isEscaped
-    #     return self.isInCode and not isWhitespace(self) and ch != '' and not closer
-    #     # return result.isInCode and not ch in (BLANK_SPACE, DOUBLE_SPACE) and ch != '' and not closer
-
-def getInitialResult(text, options, mode, smart):
-    """Returns a dictionary of the initial state."""
-
-    return Result(text, options, mode, smart)
 
 #-------------------------------------------------------------------------------
 # Possible Errors
@@ -418,16 +405,6 @@ if RUN_ASSERTS:
     assert replaceWithinString('aaa', 0, 1, 'b') == 'baa'
     assert replaceWithinString('aaa', 0, 2, 'b') == 'ba'
 
-def repeatString(text, n):
-    return text*n
-
-if RUN_ASSERTS:
-    assert repeatString('a', 2) == 'aa'
-    assert repeatString('aa', 3) == 'aaaaaa'
-    assert repeatString('aa', 0) == ''
-    assert repeatString('', 0) == ''
-    assert repeatString('', 5) == ''
-
 def getLineEnding(text):
     # NOTE: We assume that if the CR char "\r" is used anywhere,
     #       then we should use CRLF line-endings after every line.
@@ -452,7 +429,7 @@ def shiftCursorOnEdit(result, lineNo, start, end, replace):
 
     if (dx != 0 and
             result.cursorLine == lineNo and
-            result.cursorX != None and
+            result.cursorX is not None and
             isCursorAffected(result, start, end)):
         result.cursorX += dx
 
@@ -509,19 +486,23 @@ def clamp(val, minN, maxN):
 #     assert clamp(1, None, None) == 1
 
 def peek(arr, idxFromBack):
-    maxIdx = len(arr) - 1
-    if idxFromBack > maxIdx:
+    # maxIdx = len(arr) - 1
+    # if idxFromBack > maxIdx:
+    #     return None
+    # return arr[maxIdx - idxFromBack]
+    try:
+        return arr[-1 - idxFromBack]
+    except IndexError:
         return None
-    return arr[maxIdx - idxFromBack]
 
 if RUN_ASSERTS:
     assert peek(['a'], 0) == 'a'
-    assert peek(['a'], 1) == None
+    assert peek(['a'], 1) is None
     assert peek(['a', 'b', 'c'], 0) == 'c'
     assert peek(['a', 'b', 'c'], 1) == 'b'
-    assert peek(['a', 'b', 'c'], 5) == None
-    assert peek([], 0) == None
-    assert peek([], 1) == None
+    assert peek(['a', 'b', 'c'], 5) is None
+    assert peek([], 0) is None
+    assert peek([], 1) is None
 
 #-------------------------------------------------------------------------------
 # Questions about characters
@@ -532,17 +513,17 @@ def isValidCloseParen(parenStack, ch):
         return False
     return peek(parenStack, 0).ch == MATCH_PAREN[ch]
 
-def isWhitespace(result):
-    return not result.isEscaped and result.ch in WHITESPACE
+# def isWhitespace(result):
+#     return not result.isEscaped and result.ch in WHITESPACE
 
 # can this be the last code character of a list?
 def isClosable(result):
     ch = result.ch
     closer = ch in CLOSE_PARENS and not result.isEscaped
     # closer = ch in ('}', ')', ']') and not result.isEscaped
-    return result.isInCode and not isWhitespace(result) and ch != '' and not closer
+    # return result.isInCode and not isWhitespace(result) and ch != '' and not closer
+    return result.isInCode and (result.isEscaped or ch not in WHITESPACE) and ch != '' and not closer
     # return result.isInCode and not ch in (BLANK_SPACE, DOUBLE_SPACE) and ch != '' and not closer
-
 
 #-------------------------------------------------------------------------------
 # Advanced operations on characters
@@ -558,7 +539,7 @@ def checkCursorHolding(result):
         result.cursorLine == opener.lineNo and
         holdMinX <= result.cursorX and result.cursorX <= holdMaxX
     )
-    shouldCheckPrev = not result.changes and result.prevCursorLine != None
+    shouldCheckPrev = not result.changes and result.prevCursorLine is not None
     if shouldCheckPrev:
         prevHolding = (
             result.prevCursorLine == opener.lineNo and
@@ -570,10 +551,12 @@ def checkCursorHolding(result):
 
 def trackArgTabStop(result, state):
     if state == 'space':
-        if result.isInCode and isWhitespace(result):
+        # if result.isInCode and isWhitespace(result):
+        if result.isInCode and not result.isEscaped and result.ch in WHITESPACE:
             result.trackingArgTabStop = 'arg'
     elif state == 'arg':
-        if not isWhitespace(result):
+        # if not isWhitespace(result):
+        if result.isEscaped or result.ch not in WHITESPACE:
             opener = peek(result.parenStack, 0)
             opener.argX = result.x
             result.trackingArgTabStop = None
@@ -583,7 +566,8 @@ def trackArgTabStop(result, state):
 #-------------------------------------------------------------------------------
 
 class Opener(object):
-    __slots__ = ('self', 'inputLineNo', 'inputX', 'lineNo', 'x', 'ch', 'indentDelta', 'maxChildIndent', 'argX', 'children', 'closer')
+    __slots__ = ('self', 'inputLineNo', 'inputX', 'lineNo', 'x', 'ch', 'indentDelta', 
+                 'maxChildIndent', 'argX', 'children', 'closer')
     def __init__(self, inputLineNo, inputX, lineNo, x, ch, indentDelta, maxChildIndent):
         super(Opener, self).__init__()
         self.inputLineNo = inputLineNo
@@ -606,17 +590,6 @@ class Opener(object):
                 + "\n  indentDelta: " + str(self.indentDelta)
                 + "\n  maxChildIndent: " + str(self.maxChildIndent)
                 + "}")
-
-        # opener = {
-        #     'inputLineNo': result.inputLineNo,
-        #     'inputX': result.inputX,
-
-        #     'lineNo': result.lineNo,
-        #     'x': result.x,
-        #     'ch': result.ch,
-        #     'indentDelta': result.indentDelta,
-        #     'maxChildIndent': None
-        # }
 
 def onOpenParen(result):
     if result.isInCode:
@@ -645,9 +618,9 @@ def onOpenParen(result):
         result.trackingArgTabStop = 'space'
 
 def setCloser(opener, lineNo, x, ch):
-    opener.closer.lineNo = lineNo
-    opener.closer.x = x
-    opener.closer.ch = ch
+    opener.closer['lineNo'] = lineNo
+    opener.closer['x'] = x
+    opener.closer['ch'] = ch
 
 def onMatchedCloseParen(result):
     opener = peek(result.parenStack, 0)
@@ -785,16 +758,16 @@ def onChar(result):
 def isCursorLeftOf(cursorX, cursorLine, x, lineNo):
     return (
         cursorLine == lineNo and
-        x != None and
-        cursorX != None and
+        x is not None and
+        cursorX is not None and
         cursorX <= x # inclusive since (cursorX = x) implies (x-1 < cursor < x)
     )
 
 def isCursorRightOf(cursorX, cursorLine, x, lineNo):
     return (
         cursorLine == lineNo and
-        x != None and
-        cursorX != None and
+        x is not None and
+        cursorX is not None and
         cursorX > x
     )
 
@@ -1063,7 +1036,7 @@ def correctParenTrail(result, indentX):
         if result.returnParens:
             setCloser(opener, result.parenTrail.lineNo, result.parenTrail.startX+i, closeCh)
 
-    if result.parenTrail.lineNo != None:
+    if result.parenTrail.lineNo is not None:
         replaceWithinLine(result, result.parenTrail.lineNo, result.parenTrail.startX, result.parenTrail.endX, parens)
         result.parenTrail.endX = result.parenTrail.startX + len(parens)
         rememberParenTrail(result)
@@ -1126,7 +1099,7 @@ def rememberParenTrail(result):
     trail = result.parenTrail
     openers = trail.clamped.openers + trail.openers
     if len(openers) > 0:
-        isClamped = trail.clamped.startX != None
+        isClamped = trail.clamped.startX is not None
         allClamped = len(trail.openers) == 0
         shortTrail = {
             'lineNo': trail.lineNo,
@@ -1137,18 +1110,18 @@ def rememberParenTrail(result):
 
         if result.returnParens:
             for i in range(len(openers)):
-                openers[i].closer.trail = shortTrail
+                openers[i].closer['trail'] = shortTrail
 
 def updateRememberedParenTrail(result):
     if result.parenTrails:
-        trail = result.parenTrails[len(result.parenTrails)-1]
+        trail = result.parenTrails[-1]
         if trail['lineNo'] != result.parenTrail.lineNo:
             rememberParenTrail(result)
         else:
             trail['endX'] = result.parenTrail.endX
             if result.returnParens:
-                opener = result.parenTrail.openers[len(result.parenTrail.openers)-1]
-                opener.closer.trail = trail
+                opener = result.parenTrail.openers[-1]
+                opener.closer['trail'] = trail
     else:
         rememberParenTrail(result)
 
@@ -1171,7 +1144,7 @@ def finishNewParenTrail(result):
 def addIndent(result, delta):
     origIndent = result.x
     newIndent = origIndent + delta
-    indentStr = repeatString(BLANK_SPACE, newIndent)
+    indentStr = BLANK_SPACE*newIndent
     replaceWithinLine(result, result.lineNo, 0, origIndent, indentStr)
     result.x = newIndent
     result.indentX = newIndent
@@ -1281,12 +1254,12 @@ def makeTabStop(result, opener):
         'x': opener.x,
         'lineNo': opener.lineNo
     }
-    if opener.argX != None:
+    if opener.argX is not None:
         tabStop['argX'] = opener.argX
     return tabStop
 
 def getTabStopLine(result):
-    return result.selectionStartLine if result.selectionStartLine != None else result.cursorLine
+    return result.selectionStartLine if result.selectionStartLine is not None else result.cursorLine
 
 def setTabStops(result):
     if getTabStopLine(result) != result.lineNo:
@@ -1377,7 +1350,7 @@ def processError(result, e):
         raise e
 
 def processText(text, options, mode, smart=False):
-    result = getInitialResult(text, options, mode, smart)
+    result = Result(text, options, mode, smart)
     try:
         for i in range(len(result.inputLines)):
             result.inputLineNo = i
@@ -1408,7 +1381,7 @@ def publicResult(result):
             'parenTrails': result.parenTrails
         }
         if result.returnParens:
-            final.parens = result.parens
+            final['parens'] = result.parens
     else:
         final = {
             'text': lineEnding.join(result.lines) if result.partialResult else result.origText,
@@ -1419,11 +1392,11 @@ def publicResult(result):
             'error': result.error
         }
         if result.partialResult and result.returnParens:
-            final.parens = result.parens
+            final['parens'] = result.parens
 
-    if final['cursorX'] == None:
+    if final['cursorX'] is None:
         del final['cursorX']
-    if final['cursorLine'] == None:
+    if final['cursorLine'] is None:
         del final['cursorLine']
     if 'tabStops' in final and len(final['tabStops']) == 0:
         del final['tabStops']
