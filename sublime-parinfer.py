@@ -43,25 +43,27 @@ def get_syntax_language(view):
     else:
         None
 
+
+# TODO: This is ugly, but I'm not sure how to avoid the ugly iteration lookup on each view.
+comment_chars = {}
+
 def get_comment_char(view):
-    srclang = get_syntax_language(view)    
-    if (srclang == None):
-        return ';'
+    comment_char = ';'
+    srclang = get_syntax_language(view)
 
-    srclang = srclang.lower()    
+    if srclang in comment_chars:
+        comment_char = comment_chars[srclang]
+    else:
+        # Iterate over all shellVariables for the given view.
+        # 0 is a position so probably should be the current cursor location,
+        # but since we don't nest Clojure in other syntaxes, just use 0.
+        for var in view.meta_info("shellVariables", 0):
+            if var['name'] == 'TM_COMMENT_START':
+                comment_char = var['value'].strip()
+                comment_chars[srclang] = comment_char
+                break
 
-    default = get_setting(view, 'default_comment_character')    
-    if (default == None):
-        return ';'    
-
-    langs = get_setting(view, 'comment_character_mapping')        
-    if (langs == None):
-        return ';'
-
-    char = langs.get(srclang)
-    if (char == None):
-        return ';'
-    return char
+    return comment_char
 
 
 def get_setting(view, key):
@@ -129,15 +131,19 @@ class ParinferApplyCommand(sublime_plugin.TextCommand):
 # NOTE: This command inspects the text around the cursor to determine if we need
 #       to run Parinfer on it. It does not modify the buffer directly.
 class ParinferInspectCommand(sublime_plugin.TextCommand):
-    # holds the text of the last update
-    last_update_text = None    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # holds the text of the last update
+        self.last_update_text = None
+        self.comment_char = get_comment_char(self.view)
 
     def run(self, edit):
         current_view = self.view
         current_status = current_view.get_status(STATUS_KEY)
 
         # exit if Parinfer is not enabled on this view
-        if current_status != INDENT_STATUS and current_status != PAREN_STATUS:
+        if current_status not in (INDENT_STATUS, PAREN_STATUS):
             return
 
         whole_region = sublime.Region(0, current_view.size())
@@ -163,9 +169,9 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
             return
 
         parinfer_options = {
-            'cursorLine': modified_cursor_row, 
+            'cursorLine': modified_cursor_row,
             'cursorX': cursor_col,
-            'commentChar': get_comment_char(self.view)
+            'commentChar': self.comment_char,
         }
 
         # specify the Parinfer mode
@@ -191,6 +197,7 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
                     'result_text': result['text'],
                 }
                 sublime.set_timeout(lambda: current_view.run_command('parinfer_apply', cmd_options), 1)
+
 
 class ParinferParenOnOpen(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -273,6 +280,7 @@ class ParinferToggleOffCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         # remove from the status bar
         self.view.erase_status(STATUS_KEY)
+
 
 # override undo
 class ParinferUndoListener(sublime_plugin.EventListener):
