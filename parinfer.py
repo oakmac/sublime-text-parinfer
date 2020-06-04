@@ -24,7 +24,6 @@ BLANK_SPACE = ' '
 DOUBLE_SPACE = '  '
 DOUBLE_QUOTE = '"'
 NEWLINE = '\n'
-SEMICOLON = ';'
 TAB = '\t'
 
 LINE_ENDING_REGEX = re.compile(r"\r?\n")
@@ -154,7 +153,8 @@ class Result:
         'quoteDanger', 'trackingIndent', 'skipChar', 'success', 'partialResult',
         'forceBalance', 'maxIndent', 'indentDelta', 'trackingArgTabStop',
         'error',
-        'errorPosCache')
+        'errorPosCache',
+        'comment')
 
     def __str__(self):
         return ('Result {' + 'mode: ' + str(self.mode) + '\n\t'
@@ -198,7 +198,8 @@ class Result:
                 'indentDelta: ' + str(self.indentDelta) + '\n\t'
                 'trackingArgTabStop: ' + str(self.trackingArgTabStop) + '\n\t'
                 'error: ' + str(self.error) + '\n\t'
-                'errorPosCache: ' + str(self.errorPosCache) + '\n\t}')
+                'errorPosCache: ' + str(self.errorPosCache) + '\n\t'
+                'comment: ' + str(self.comment) + '\n\t}')
 
     def __init__(self, text, options, mode, smart):
         """Constructs a dictionary of the initial state."""
@@ -213,7 +214,7 @@ class Result:
 
                                         # [string array] - input lines that we process line-by-line char-by-char
         self.inputLines = re.split(LINE_ENDING_REGEX, text)
-        
+
         self.inputLineNo = -1           # [integer] - the current input line number
         self.inputX = -1                # [integer] - the current input x position of the current character (ch)
 
@@ -278,6 +279,7 @@ class Result:
                                         #    (We create the tabStop when the change from 2->0 happens.)
                                         #
 
+        self.comment = ';'              # [string] default to semicolon as comment character
         self.error = {                  # if 'success' is False, return this error to the user
             'name': None,               # [string] - Parinfer's unique name for this error
             'message': None,            # [string] - error message to display
@@ -312,6 +314,8 @@ class Result:
                 self.forceBalance = options['forceBalance']
             if 'returnParens' in options:
                 self.returnParens = options['returnParens']
+            if 'comment' in options:
+                self.comment = options['comment']
 
 #-------------------------------------------------------------------------------
 # Possible Errors
@@ -566,7 +570,7 @@ def trackArgTabStop(result, state):
 #-------------------------------------------------------------------------------
 
 class Opener(object):
-    __slots__ = ('self', 'inputLineNo', 'inputX', 'lineNo', 'x', 'ch', 'indentDelta', 
+    __slots__ = ('self', 'inputLineNo', 'inputX', 'lineNo', 'x', 'ch', 'indentDelta',
                  'maxChildIndent', 'argX', 'children', 'closer')
     def __init__(self, inputLineNo, inputX, lineNo, x, ch, indentDelta, maxChildIndent):
         super(Opener, self).__init__()
@@ -671,7 +675,7 @@ def onTab(result):
     if result.isInCode:
         result.ch = DOUBLE_SPACE
 
-def onSemicolon(result):
+def onComment(result):
     if result.isInCode:
         result.isInComment = True
         result.commentX = result.x
@@ -716,7 +720,6 @@ CHAR_DISPATCH = {
     '}': onCloseParen,
     ']': onCloseParen,
     BACKSLASH: onBackslash,
-    SEMICOLON: onSemicolon,
     TAB: onTab,
     NEWLINE: onNewline,
     DOUBLE_QUOTE: onQuote,
@@ -727,6 +730,8 @@ def onChar(result):
 
     if result.isEscaping:
         afterBackslash(result)
+    elif result.ch == result.comment:
+        onComment(result)
     else:
         dispatch = CHAR_DISPATCH.get(result.ch, None)
         if dispatch is not None:
@@ -1241,7 +1246,7 @@ def onCommentLine(result):
 def checkIndent(result):
     if result.ch in CLOSE_PARENS:
         onLeadingCloseParen(result)
-    elif result.ch == SEMICOLON:
+    elif result.ch == result.comment:
         # comments don't count as indentation points
         onCommentLine(result)
         result.trackingIndent = False
