@@ -29,7 +29,7 @@ If you have [Package Control] installed, you can easily install the
 
 ### Linux / OSX
 
-You can symlink the the parinfer repo to the Sublime Text Packages directory.
+You can symlink this repo to the Sublime Text Packages directory:
 
 ```
 cd ~
