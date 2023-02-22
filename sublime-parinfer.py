@@ -232,10 +232,14 @@ class Parinfer(sublime_plugin.EventListener):
         if isinstance(filename, basestring) is not True:
             return False
 
-        # check the extensions in settings
-        for extension in get_setting(view, 'file_extensions'):
-            if filename.endswith(extension):
-                return True
+        # check if this is a known file extension
+        file_extensions = get_setting(view, 'file_extensions')
+        try:
+            for extension in file_extensions:
+                if filename.endswith(extension):
+                    return True
+        except:
+            None
 
         # didn't find anything; do not automatically start Parinfer
         return False
