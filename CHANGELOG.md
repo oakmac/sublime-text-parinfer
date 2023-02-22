@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+### Added
+* add command "Parinfer: Run Paren Mode on Current Buffer"
 
 ### Fixed
 * added some defensive code to prevent an occasional runtime error
