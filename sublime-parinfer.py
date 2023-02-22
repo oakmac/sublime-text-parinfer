@@ -9,13 +9,11 @@
 # Released under the ISC license
 # https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
 
-import sublime
-import sublime_plugin
 import functools
 import re
 
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
+import sublime
+import sublime_plugin
 
 try:
     # Python 2
@@ -40,8 +38,7 @@ def get_syntax_language(view):
     regex_res = re.search(SYNTAX_LANGUAGE_RE, view.settings().get("syntax"))
     if regex_res:
         return regex_res.group(1)
-    else:
-        None
+    return None
 
 
 # TODO: This is ugly, but I'm not sure how to avoid the ugly iteration lookup on each view.
@@ -109,11 +106,11 @@ def find_end_parent_expression(lines, line_no):
 # this command applies the parinfer changes to the buffer
 # NOTE: this needs to be in it's own command so we can override "undo"
 class ParinferApplyCommand(sublime_plugin.TextCommand):
-    def run(self, edit, start_line = 0, end_line = 0, cursor_row = 0, cursor_col = 0, result_text = ''):
+    def run(self, edit, start_line = 0, end_line = 0, result_text = ''):
         # get the current selection
-        current_selections = [(self.view.rowcol(start), self.view.rowcol(end)) 
+        current_selections = [(self.view.rowcol(start), self.view.rowcol(end))
                               for start, end in self.view.sel()]
-        
+
         # update the buffer
         start_point = self.view.text_point(start_line, 0)
         end_point = self.view.text_point(end_line, 0)
@@ -138,7 +135,7 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
         self.last_update_text = None
         self.comment_char = get_comment_char(self.view)
 
-    def run(self, edit):
+    def run(self, _edit):
         current_view = self.view
         current_status = current_view.get_status(STATUS_KEY)
 
@@ -270,8 +267,9 @@ class Parinfer(sublime_plugin.EventListener):
         # run Paren Mode on the whole file
         view.run_command('parinfer_paren_on_open')
 
+
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def run(self, _edit):
         # update the status bar
         current_status = self.view.get_status(STATUS_KEY)
         if current_status == INDENT_STATUS:
@@ -281,14 +279,14 @@ class ParinferToggleOnCommand(sublime_plugin.TextCommand):
 
 
 class ParinferToggleOffCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
+    def run(self, _edit):
         # remove from the status bar
         self.view.erase_status(STATUS_KEY)
 
 
 # override undo
 class ParinferUndoListener(sublime_plugin.EventListener):
-    def on_text_command(self, view, command_name, args):
+    def on_text_command(self, view, command_name, _args):
         # TODO: Only run in parinfer views?
         # TODO: Simplify duplicated logic?
         if command_name == 'undo':
