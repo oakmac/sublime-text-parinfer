@@ -65,7 +65,8 @@ All notable changes to this project will be documented in this file.
 [PR-37]:https://github.com/oakmac/sublime-text-parinfer/pull/37
 [PR-41]:https://github.com/oakmac/sublime-text-parinfer/pull/41
 
-[Unreleased]: https://github.com/oakmac/sublime-text-parinfer/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/oakmac/sublime-text-parinfer/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v0.9.0
 [0.8.1]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v0.8.1
 [0.8.0]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v0.8.0
 [0.7.0]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v0.7.0
