@@ -6,5 +6,9 @@
   {
     "caption": "Parinfer: Disable",
     "command": "parinfer_toggle_off"
+  },
+  {
+    "caption": "Parinfer: Run Paren Mode on Current Buffer",
+    "command": "parinfer_run_paren_current_buffer"
   }
 ]

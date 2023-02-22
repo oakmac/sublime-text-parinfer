@@ -293,7 +293,32 @@ class ParinferToggleOffCommand(sublime_plugin.TextCommand):
         self.view.erase_status(STATUS_KEY)
 
 
-# override undo
+class ParinferRunParenCurrentBuffer(sublime_plugin.TextCommand):
+    """
+    Runs paren_mode on the entire current buffer
+    """
+    def run(self, _edit):
+        current_view = self.view
+        whole_region = sublime.Region(0, current_view.size())
+        all_text = current_view.substr(whole_region)
+
+        lines = all_text.split("\n")
+        # add a newline at the end of the file if there is not one
+        if lines[-1] != "":
+            lines.append("")
+
+        # NOTE: we do not need to pass any option to paren_mode() here
+        result = paren_mode(all_text, {})
+
+        if result['success']:
+            cmd_options = {
+                'start_line': 0, ## first line
+                'end_line': len(lines) - 1, ## last line
+                'result_text': result['text'],
+            }
+            sublime.set_timeout(lambda: current_view.run_command('parinfer_apply', cmd_options), 1)
+
+
 class ParinferUndoListener(sublime_plugin.EventListener):
     def on_text_command(self, view, command_name, _args):
         # TODO: Only run in parinfer views?
@@ -306,7 +331,7 @@ class ParinferUndoListener(sublime_plugin.EventListener):
             if cmd_history[0] == 'parinfer_apply':
                 view.run_command('undo')
 
-            # run "undo" as normal
+        # run "undo" as normal
         elif command_name == 'redo':
             # check to see if the command after next was a 'parinfer_apply'
             cmd_history = view.command_history(2)
@@ -315,4 +340,4 @@ class ParinferUndoListener(sublime_plugin.EventListener):
             if cmd_history[0] == 'parinfer_apply':
                 view.run_command('redo')
 
-            # run "redo" as normal
+        # else run "redo" as normal
