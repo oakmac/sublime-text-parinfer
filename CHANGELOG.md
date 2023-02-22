@@ -4,9 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.9.0] - 2023-02-22
+### Added
+* use python v3.8
+* support multiple selections [PR-41] (thank you [s-clerc]!)
+
+### Changed
+* update parinfer.py to v3.12.0 (thank you [oconnor0]!)
+* use EventListener for undo instead of keybinding ([oconnor0])
+* use Sublime API to detect comment character ([oconnor0])
+* Run paren mode on opening file via view.run_command ([oconnor0])
+
 ## [0.8.1] - 2019-10-03
 ### Added
-* Add dynamic comment character
+* Add dynamic comment character [PR-37] (thank you [sepisoad]!)
 
 ## [0.8.0] - 2016-02-12
 ### Changed
@@ -42,11 +53,17 @@ All notable changes to this project will be documented in this file.
 [Sublime Text]:http://www.sublimetext.com/
 [Joakim Löfgren]:https://github.com/JoakimLofgren
 [Shaun LeBron]:https://github.com/shaunlebron
+[sepisoad]:https://github.com/sepisoad
+[s-clerc]:https://github.com/s-clerc
+[oconnor0]:https://github.com/oconnor0
+
 [parinfer.py]:https://github.com/oakmac/parinfer.py
 [Issue #19]:https://github.com/oakmac/sublime-text-parinfer/issues/19
 [Issue #20]:https://github.com/oakmac/sublime-text-parinfer/issues/20
 [Issue #25]:https://github.com/oakmac/sublime-text-parinfer/issues/25
 [Issue #28]:https://github.com/oakmac/sublime-text-parinfer/issues/28
+[PR-37]:https://github.com/oakmac/sublime-text-parinfer/pull/37
+[PR-41]:https://github.com/oakmac/sublime-text-parinfer/pull/41
 
 [Unreleased]: https://github.com/oakmac/sublime-text-parinfer/compare/v0.8.1...HEAD
 [0.8.1]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v0.8.1
