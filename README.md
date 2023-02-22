@@ -34,7 +34,7 @@ You can symlink this repo to the Sublime Text Packages directory:
 ```
 cd ~
 git clone git@github.com:oakmac/sublime-text-parinfer.git
-ln -s ~/sublime-text-parinfer ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/Parinfer
+ln -s ~/sublime-text-parinfer ~/Library/Application\ Support/Sublime\ Text/Packages/
 ```
 
 ### Windows
