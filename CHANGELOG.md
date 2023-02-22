@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+* added some defensive code to prevent an occasional runtime error
+* fix some [pylint] errors
+
 ## [0.9.0] - 2023-02-22
 ### Added
 * use python v3.8
@@ -58,6 +62,7 @@ All notable changes to this project will be documented in this file.
 [oconnor0]:https://github.com/oconnor0
 
 [parinfer.py]:https://github.com/oakmac/parinfer.py
+[pylint]:https://pypi.org/project/pylint/
 [Issue #19]:https://github.com/oakmac/sublime-text-parinfer/issues/19
 [Issue #20]:https://github.com/oakmac/sublime-text-parinfer/issues/20
 [Issue #25]:https://github.com/oakmac/sublime-text-parinfer/issues/25

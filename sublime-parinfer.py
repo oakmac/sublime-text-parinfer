@@ -1,13 +1,15 @@
-# Sublime Text Parinfer
-# v0.9.0
-# https://github.com/oakmac/sublime-text-parinfer
-#
-# More information about Parinfer can be found here:
-# http://shaunlebron.github.io/parinfer/
-#
-# Copyright (c) 2015, Chris Oakman and other contributors
-# Released under the ISC license
-# https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
+"""
+Sublime Text Parinfer
+v0.9.0
+https://github.com/oakmac/sublime-text-parinfer
+
+More information about Parinfer can be found here:
+http://shaunlebron.github.io/parinfer/
+
+Copyright (c) 2015, Chris Oakman and other contributors
+Released under the ISC license
+https://github.com/oakmac/sublime-text-parinfer/blob/master/LICENSE.md
+"""
 
 import functools
 import re
@@ -103,10 +105,12 @@ def find_end_parent_expression(lines, line_no):
     return max_idx
 
 
-# this command applies the parinfer changes to the buffer
-# NOTE: this needs to be in it's own command so we can override "undo"
 class ParinferApplyCommand(sublime_plugin.TextCommand):
-    def run(self, edit, start_line = 0, end_line = 0, result_text = ''):
+    """
+    This command applies the Parinfer changes to the bufer.
+    NOTE: this needs to be in it's own command so we can override "undo""
+    """
+    def run(self, edit, start_line = 0, end_line = 0, cursor_row = 0, cursor_col = 0, result_text = ''):
         # get the current selection
         current_selections = [(self.view.rowcol(start), self.view.rowcol(end))
                               for start, end in self.view.sel()]
@@ -125,9 +129,11 @@ class ParinferApplyCommand(sublime_plugin.TextCommand):
                                self.view.text_point(*end)))
 
 
-# NOTE: This command inspects the text around the cursor to determine if we need
-#       to run Parinfer on it. It does not modify the buffer directly.
 class ParinferInspectCommand(sublime_plugin.TextCommand):
+    """
+    This command inspects the text around the cursor to determine if we need
+    to run Parinfer on it. It does not modify the buffer directly.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -230,6 +236,9 @@ class Parinfer(sublime_plugin.EventListener):
             return False
 
         # check if this is a known file extension
+        # NOTE: I was occasionally seeing a runtime error here about file_extensions
+        # not being an Iterable, so wrapped in try/catch to be defensive.
+        # -- C. Oakman, 22 Feb 2023
         file_extensions = get_setting(view, 'file_extensions')
         try:
             for extension in file_extensions:
