@@ -77,13 +77,8 @@ def get_comment_char(view):
 
 def get_setting(view, key):
     settings = view.settings().get('Parinfer')
-    print("settings1", settings)
     if settings is None:
         settings = sublime.load_settings('Parinfer.sublime-settings')
-        print("settings2", settings)
-
-    print("settings as a dict:", settings.to_dict())
-
     return settings.get(key)
 
 
@@ -258,14 +253,7 @@ class Parinfer(sublime_plugin.EventListener):
         # NOTE: I was occasionally seeing a runtime error here about file_extensions
         # not being an Iterable, so wrapped in try/catch to be defensive.
         # -- C. Oakman, 22 Feb 2023
-
-        ## FIXME: not working
-        #file_extensions = get_setting(view, 'file_extensions')
-
-
-        file_extensions = [".clj", ".cljs"]
-        print("file extensions:", file_extensions)
-
+        file_extensions = get_setting(view, 'file_extensions')
         try:
             for extension in file_extensions:
                 if filename.endswith(extension):
