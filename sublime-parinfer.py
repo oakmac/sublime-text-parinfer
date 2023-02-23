@@ -210,6 +210,7 @@ class Parinfer(sublime_plugin.EventListener):
 
         # stateful debounce counter
         self.pending = 0
+
         self.buffers_with_modifications = {}
 
     # Should we automatically start Parinfer on this file?
@@ -255,8 +256,6 @@ class Parinfer(sublime_plugin.EventListener):
         sublime.set_timeout(
             functools.partial(self.handle_timeout, view), DEBOUNCE_INTERVAL_MS)
 
-    ## FIXME: need to clear the buffers_with_modifications cache when we unload a view / buffer
-
     # fires everytime a selection changes (ie: the cursor is moved)
     def on_selection_modified(self, view):
         # do nothing if Parinfer is not enabled
@@ -280,6 +279,14 @@ class Parinfer(sublime_plugin.EventListener):
         else:
             debug_log("File has been loaded, but do not start Parinfer")
 
+    # called when a view is closed
+    def on_close(self, view):
+        buffer_id = view.buffer_id()
+        clones = view.clones()
+
+        # clear the buffers_with_modifications cache if this is the last view into that Buffer
+        if len(clones) == 0 and buffer_id in self.buffers_with_modifications:
+            del self.buffers_with_modifications[buffer_id]
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
     def run(self, _edit):
