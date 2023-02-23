@@ -311,9 +311,7 @@ class ParinferRunParenCurrentBuffer(sublime_plugin.TextCommand):
         if lines[-1] != "":
             lines.append("")
 
-        # we do not need to pass any option to paren_mode() here
-        ## FIXME: do we need to pass comment char? I think the answer is "yes"
-        result = paren_mode(all_text, {})
+        result = paren_mode(all_text, { 'comment': get_comment_char(self.view) })
 
         if result['success']:
             cmd_options = {
@@ -322,6 +320,9 @@ class ParinferRunParenCurrentBuffer(sublime_plugin.TextCommand):
                 'result_text': result['text'],
             }
             sublime.set_timeout(lambda: current_view.run_command('parinfer_apply', cmd_options), 1)
+        else:
+            ## TODO: it would be nice to show them the line number / character where this failed
+            sublime.status_message('Paren mode failed. Do you have unbalanced parens?')
 
 
 class ParinferUndoListener(sublime_plugin.EventListener):
