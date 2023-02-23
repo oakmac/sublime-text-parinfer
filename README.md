@@ -51,10 +51,32 @@ git clone https://github.com/oakmac/sublime-text-parinfer.git Parinfer
 Once the package has been installed, it will automatically load in the
 background when you open Sublime Text and watch for file extensions found in a
 config file. The default file extensions are: `.clj` `.cljs` `.cljc` `.lfe`
-`.rkt`
+`.rkt` and `.janet`.
 
 You can edit these file extensions by going to Preferences --> Package Settings -->
-Parinfer --> Settings - Default
+Parinfer --> Settings
+
+## Behavior Change for v1.0.0
+
+Before v1.0.0, when a file is opened, Paren Mode is run on the entire file,
+then the user is dropped into Indent Mode. For 99% of Parinfer users, this is
+not a problem because Paren Mode does not change anything in your file. But
+this can be jarring when you open a file that was written NOT with Parinfer,
+and Parinfer adjusts the file in places where you did not edit.
+
+So new with v1.0.0, Parinfer will enter "Waiting" mode when a file is opened.
+And it is waiting for the **first modification to the buffer**, and then then
+Indent Mode will be turned on.
+
+Also the "parent expression hack" is now a bit less aggressive about
+"searching up" and "searching down" from the cursor location.
+
+For most regular users of Parinfer, these changes should basically not be
+noticeable. But hopefully results in a better experience for newer users.
+
+If you prefer the old behavior of "run full Paren Mode on the whole file
+when it is opened", there is a new config flag `run_paren_mode_when_file_opened`
+to set that behavior.
 
 ### Opening a File
 
