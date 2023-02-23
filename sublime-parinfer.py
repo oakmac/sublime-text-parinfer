@@ -250,7 +250,7 @@ class Parinfer(sublime_plugin.EventListener):
         if view.get_status(STATUS_KEY) == PENDING_STATUS:
             view.set_status(STATUS_KEY, INDENT_STATUS)
 
-        # Run Parinfer
+        # run Parinfer
         self.pending = self.pending + 1
         sublime.set_timeout(
             functools.partial(self.handle_timeout, view), DEBOUNCE_INTERVAL_MS)
@@ -264,7 +264,7 @@ class Parinfer(sublime_plugin.EventListener):
         if status not in ALL_STATUSES:
             return
 
-        # Run Parinfer if this is a buffer that has been modified
+        # run Parinfer if this is a buffer that has been modified
         buffer_id = view.buffer_id()
         if buffer_id in self.buffers_with_modifications and self.buffers_with_modifications[buffer_id] == True:
             debug_log("selection change, buffer has been modified, run Parinfer")
