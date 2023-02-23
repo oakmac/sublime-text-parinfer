@@ -29,7 +29,7 @@ except NameError:
     basestring = str
 
 # dev flag
-DEBUG_LOGGING = True
+DEBUG_LOGGING = False
 
 # constants
 DEBOUNCE_INTERVAL_MS = 50
@@ -202,27 +202,6 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
                     'result_text': result['text'],
                 }
                 sublime.set_timeout(lambda: current_view.run_command('parinfer_apply', cmd_options), 1)
-
-
-# class ParinferParenOnOpen(sublime_plugin.TextCommand):
-#     def run(self, edit):
-#         # run Paren Mode on the whole file
-#         whole_region = sublime.Region(0, self.view.size())
-#         all_text = self.view.substr(whole_region)
-#         result = paren_mode(all_text, None)
-
-#         # TODO:
-#         # - what to do when paren mode fails on a new file?
-#         #   show them a message?
-#         # - warn them before applying Paren Mode changes?
-
-#         if result['success']:
-#             # update the buffer if we need to
-#             if all_text != result['text']:
-#                 self.view.replace(edit, whole_region, result['text'])
-
-#             # drop them into Indent Mode
-#             self.view.set_status(STATUS_KEY, INDENT_STATUS)
 
 
 class Parinfer(sublime_plugin.EventListener):
