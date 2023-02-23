@@ -34,9 +34,10 @@ DEBUG_LOGGING = True
 # constants
 DEBOUNCE_INTERVAL_MS = 50
 STATUS_KEY = 'parinfer'
-PENDING_STATUS = 'Parinfer: Waiting for first modification'
+PENDING_STATUS = 'Parinfer: Waiting'
 INDENT_STATUS = 'Parinfer: Indent'
 PAREN_STATUS = 'Parinfer: Paren'
+ALL_STATUSES = [PENDING_STATUS, INDENT_STATUS, PAREN_STATUS]
 PARENT_EXPRESSION_RE = re.compile(r"^\([a-zA-Z]")
 SYNTAX_LANGUAGE_RE = r"([\w\d\s]*)(\.sublime-syntax)"
 
@@ -157,7 +158,7 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
         current_status = current_view.get_status(STATUS_KEY)
 
         # exit if Parinfer is not enabled on this view
-        if current_status not in (INDENT_STATUS, PAREN_STATUS, PENDING_STATUS):
+        if current_status not in ALL_STATUSES:
             return
 
         whole_region = sublime.Region(0, current_view.size())
