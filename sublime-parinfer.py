@@ -88,31 +88,21 @@ def is_parent_expression(txt):
 
 
 def find_start_parent_expression(lines, line_no):
-    line_no = line_no - 4
-    if line_no < 0:
-        return 0
-
     idx = line_no - 1
     while idx > 0:
         if is_parent_expression(lines[idx]):
             return idx
         idx = idx - 1
-
     return 0
 
 
 def find_end_parent_expression(lines, line_no):
     max_idx = len(lines) - 1
-    line_no = line_no + 4
-    if line_no > max_idx:
-        return max_idx
-
     idx = line_no + 1
     while idx < max_idx:
         if is_parent_expression(lines[idx]):
             return idx
         idx = idx + 1
-
     return max_idx
 
 
@@ -292,7 +282,7 @@ class Parinfer(sublime_plugin.EventListener):
     def on_selection_modified(self, view):
         # do nothing if Parinfer is not enabled
         status = view.get_status(STATUS_KEY)
-        if status not in (INDENT_STATUS, PAREN_STATUS, PENDING_STATUS):
+        if status not in ALL_STATUSES:
             return
 
         # Run Parinfer if this is a buffer that has been modified
