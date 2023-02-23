@@ -31,8 +31,9 @@ except NameError:
 # constants
 DEBOUNCE_INTERVAL_MS = 50
 STATUS_KEY = 'parinfer'
-PAREN_STATUS = 'Parinfer: Paren'
+PENDING_STATUS = 'Parinfer: Waiting for first modification'
 INDENT_STATUS = 'Parinfer: Indent'
+PAREN_STATUS = 'Parinfer: Paren'
 PARENT_EXPRESSION_RE = re.compile(r"^\([a-zA-Z]")
 SYNTAX_LANGUAGE_RE = r"([\w\d\s]*)(\.sublime-syntax)"
 
@@ -67,8 +68,13 @@ def get_comment_char(view):
 
 def get_setting(view, key):
     settings = view.settings().get('Parinfer')
+    print("settings1", settings)
     if settings is None:
         settings = sublime.load_settings('Parinfer.sublime-settings')
+        print("settings2", settings)
+
+    print("settings as a dict:", settings.to_dict())
+
     return settings.get(key)
 
 
@@ -107,8 +113,9 @@ def find_end_parent_expression(lines, line_no):
 
 class ParinferApplyCommand(sublime_plugin.TextCommand):
     """
-    This command applies the Parinfer changes to the bufer.
-    NOTE: this needs to be in it's own command so we can override "undo""
+    This command applies the Parinfer changes to the buffer.
+    NOTE: this needs to be a separate command from other operations so
+    we have an accurate history stack for "undo" and "redo"
     """
     def run(self, edit, start_line = 0, end_line = 0, cursor_row = 0, cursor_col = 0, result_text = ''):
         # get the current selection
@@ -146,7 +153,7 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
         current_status = current_view.get_status(STATUS_KEY)
 
         # exit if Parinfer is not enabled on this view
-        if current_status not in (INDENT_STATUS, PAREN_STATUS):
+        if current_status not in (INDENT_STATUS, PAREN_STATUS, PENDING_STATUS):
             return
 
         whole_region = sublime.Region(0, current_view.size())
@@ -202,31 +209,35 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
                 sublime.set_timeout(lambda: current_view.run_command('parinfer_apply', cmd_options), 1)
 
 
-class ParinferParenOnOpen(sublime_plugin.TextCommand):
-    def run(self, edit):
-        # run Paren Mode on the whole file
-        whole_region = sublime.Region(0, self.view.size())
-        all_text = self.view.substr(whole_region)
-        result = paren_mode(all_text, None)
+# class ParinferParenOnOpen(sublime_plugin.TextCommand):
+#     def run(self, edit):
+#         # run Paren Mode on the whole file
+#         whole_region = sublime.Region(0, self.view.size())
+#         all_text = self.view.substr(whole_region)
+#         result = paren_mode(all_text, None)
 
-        # TODO:
-        # - what to do when paren mode fails on a new file?
-        #   show them a message?
-        # - warn them before applying Paren Mode changes?
+#         # TODO:
+#         # - what to do when paren mode fails on a new file?
+#         #   show them a message?
+#         # - warn them before applying Paren Mode changes?
 
-        if result['success']:
-            # update the buffer if we need to
-            if all_text != result['text']:
-                self.view.replace(edit, whole_region, result['text'])
+#         if result['success']:
+#             # update the buffer if we need to
+#             if all_text != result['text']:
+#                 self.view.replace(edit, whole_region, result['text'])
 
-            # drop them into Indent Mode
-            self.view.set_status(STATUS_KEY, INDENT_STATUS)
+#             # drop them into Indent Mode
+#             self.view.set_status(STATUS_KEY, INDENT_STATUS)
 
 
 class Parinfer(sublime_plugin.EventListener):
     def __init__(self):
+        print("INIT INIT INIT")
         # stateful debounce counter
         self.pending = 0
+
+
+        self.buffers_with_modifications = {}
 
     # Should we automatically start Parinfer on this file?
     def should_start(self, view):
@@ -239,7 +250,14 @@ class Parinfer(sublime_plugin.EventListener):
         # NOTE: I was occasionally seeing a runtime error here about file_extensions
         # not being an Iterable, so wrapped in try/catch to be defensive.
         # -- C. Oakman, 22 Feb 2023
-        file_extensions = get_setting(view, 'file_extensions')
+
+        ## FIXME: not working
+        #file_extensions = get_setting(view, 'file_extensions')
+
+
+        file_extensions = [".clj", ".cljs"]
+        print("file extensions:", file_extensions)
+
         try:
             for extension in file_extensions:
                 if filename.endswith(extension):
@@ -256,25 +274,45 @@ class Parinfer(sublime_plugin.EventListener):
         if self.pending == 0:
             view.run_command('parinfer_inspect')
 
-    # fires everytime the editor is modified; basically calls a
-    # debounced run_parinfer
+    # fires everytime a buffer receives a modification
     def on_modified(self, view):
+        # Flag this buffer as being modified
+        buffer_id = view.buffer_id()
+        self.buffers_with_modifications[buffer_id] = True
+
+        # flip from "Pending" to "Indent Mode" on the first buffer modification
+        if view.get_status(STATUS_KEY) == PENDING_STATUS:
+            view.set_status(STATUS_KEY, INDENT_STATUS)
+
+        # Run Parinfer
         self.pending = self.pending + 1
         sublime.set_timeout(
             functools.partial(self.handle_timeout, view), DEBOUNCE_INTERVAL_MS)
 
-    # fires everytime the cursor is moved
+    ## FIXME: need to clear the buffers_with_modifications cache when we unload a view / buffer
+
+    # fires everytime a selection changes (ie: the cursor is moved)
     def on_selection_modified(self, view):
-        self.on_modified(view)
+        # do nothing if Parinfer is not enabled
+        status = view.get_status(STATUS_KEY)
+        if status not in (INDENT_STATUS, PAREN_STATUS, PENDING_STATUS):
+            return
+
+        # Run Parinfer if this is a buffer that has been modified
+        buffer_id = view.buffer_id()
+        if buffer_id in self.buffers_with_modifications and self.buffers_with_modifications[buffer_id] == True:
+            print("selection change, buffer has been modified, run parinfer")
+            self.on_modified(view)
+        else:
+            print("selection change, buffer has NOT been modified, do nothing")
 
     # fires when a file is finished loading
     def on_load(self, view):
-        # exit early if we do not recognize this file extension
-        if not self.should_start(view):
-            return
-
-        # run Paren Mode on the whole file
-        view.run_command('parinfer_paren_on_open')
+        if self.should_start(view):
+            print("File has been loaded, we automatically start Parinfer")
+            view.set_status(STATUS_KEY, PENDING_STATUS)
+        else:
+            print("File has been loaded, but do not start Parinfer")
 
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
@@ -307,7 +345,8 @@ class ParinferRunParenCurrentBuffer(sublime_plugin.TextCommand):
         if lines[-1] != "":
             lines.append("")
 
-        # NOTE: we do not need to pass any option to paren_mode() here
+        # we do not need to pass any option to paren_mode() here
+        ## FIXME: do we need to pass comment char? I think the answer is "yes"
         result = paren_mode(all_text, {})
 
         if result['success']:
@@ -320,9 +359,12 @@ class ParinferRunParenCurrentBuffer(sublime_plugin.TextCommand):
 
 
 class ParinferUndoListener(sublime_plugin.EventListener):
+    """
+    Listen for "undo" and "redo" commands. If they occur for Parinfer operations,
+    then reverse (or re-apply) accordingly.
+    Has no effect for non-Parinfer applied changes.
+    """
     def on_text_command(self, view, command_name, _args):
-        # TODO: Only run in parinfer views?
-        # TODO: Simplify duplicated logic?
         if command_name == 'undo':
             # check to see if the last command was a 'parinfer_apply'
             cmd_history = view.command_history(0)
@@ -331,7 +373,6 @@ class ParinferUndoListener(sublime_plugin.EventListener):
             if cmd_history[0] == 'parinfer_apply':
                 view.run_command('undo')
 
-        # run "undo" as normal
         elif command_name == 'redo':
             # check to see if the command after next was a 'parinfer_apply'
             cmd_history = view.command_history(2)
@@ -339,5 +380,3 @@ class ParinferUndoListener(sublime_plugin.EventListener):
             # if so, run an extra "redo" to erase the changes
             if cmd_history[0] == 'parinfer_apply':
                 view.run_command('redo')
-
-        # else run "redo" as normal
