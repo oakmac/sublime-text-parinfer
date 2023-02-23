@@ -28,6 +28,9 @@ try:
 except NameError:
     basestring = str
 
+# dev flag
+DEBUG_LOGGING = True
+
 # constants
 DEBOUNCE_INTERVAL_MS = 50
 STATUS_KEY = 'parinfer'
@@ -36,6 +39,12 @@ INDENT_STATUS = 'Parinfer: Indent'
 PAREN_STATUS = 'Parinfer: Paren'
 PARENT_EXPRESSION_RE = re.compile(r"^\([a-zA-Z]")
 SYNTAX_LANGUAGE_RE = r"([\w\d\s]*)(\.sublime-syntax)"
+
+
+def debug_log(x):
+    if DEBUG_LOGGING == True:
+        print("DEBUG:", x)
+
 
 def get_syntax_language(view):
     regex_res = re.search(SYNTAX_LANGUAGE_RE, view.settings().get("syntax"))
@@ -232,11 +241,10 @@ class ParinferInspectCommand(sublime_plugin.TextCommand):
 
 class Parinfer(sublime_plugin.EventListener):
     def __init__(self):
-        print("INIT INIT INIT")
+        debug_log('Parinfer plugin init')
+
         # stateful debounce counter
         self.pending = 0
-
-
         self.buffers_with_modifications = {}
 
     # Should we automatically start Parinfer on this file?
@@ -301,18 +309,18 @@ class Parinfer(sublime_plugin.EventListener):
         # Run Parinfer if this is a buffer that has been modified
         buffer_id = view.buffer_id()
         if buffer_id in self.buffers_with_modifications and self.buffers_with_modifications[buffer_id] == True:
-            print("selection change, buffer has been modified, run parinfer")
+            debug_log("selection change, buffer has been modified, run Parinfer")
             self.on_modified(view)
         else:
-            print("selection change, buffer has NOT been modified, do nothing")
+            debug_log("selection change, buffer has NOT been modified, do nothing")
 
     # fires when a file is finished loading
     def on_load(self, view):
         if self.should_start(view):
-            print("File has been loaded, we automatically start Parinfer")
+            debug_log("File has been loaded, automatically start Parinfer")
             view.set_status(STATUS_KEY, PENDING_STATUS)
         else:
-            print("File has been loaded, but do not start Parinfer")
+            debug_log("File has been loaded, but do not start Parinfer")
 
 
 class ParinferToggleOnCommand(sublime_plugin.TextCommand):
