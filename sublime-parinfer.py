@@ -29,7 +29,7 @@ except NameError:
     basestring = str
 
 # dev flag
-DEBUG_LOGGING = False
+DEBUG_LOGGING = True
 
 # constants
 DEBOUNCE_INTERVAL_MS = 50
@@ -275,7 +275,13 @@ class Parinfer(sublime_plugin.EventListener):
     def on_load(self, view):
         if self.should_start(view):
             debug_log("File has been loaded, automatically start Parinfer")
-            view.set_status(STATUS_KEY, PENDING_STATUS)
+
+            run_paren_mode_on_open = get_setting(view, "run_paren_mode_when_file_opened")
+            if run_paren_mode_on_open == True:
+                view.run_command('parinfer_run_paren_current_buffer', { 'drop_into_indent_mode_after': True })
+            else:
+                # start Waiting mode
+                view.set_status(STATUS_KEY, PENDING_STATUS)
         else:
             debug_log("File has been loaded, but do not start Parinfer")
 
@@ -308,7 +314,7 @@ class ParinferRunParenCurrentBuffer(sublime_plugin.TextCommand):
     """
     Runs paren_mode on the entire current buffer
     """
-    def run(self, _edit):
+    def run(self, _edit, drop_into_indent_mode_after = False):
         current_view = self.view
         whole_region = sublime.Region(0, current_view.size())
         all_text = current_view.substr(whole_region)
@@ -326,7 +332,13 @@ class ParinferRunParenCurrentBuffer(sublime_plugin.TextCommand):
                 'end_line': len(lines) - 1, ## last line
                 'result_text': result['text'],
             }
-            sublime.set_timeout(lambda: current_view.run_command('parinfer_apply', cmd_options), 1)
+            ## apply their change to the buffer
+            current_view.run_command('parinfer_apply', cmd_options)
+
+            ## optionally drop them into Indent Mode afterward
+            if drop_into_indent_mode_after == True:
+                current_view.set_status(STATUS_KEY, INDENT_STATUS)
+
         else:
             ## TODO: it would be nice to show them the line number / character where this failed
             sublime.status_message('Paren mode failed. Do you have unbalanced parens?')

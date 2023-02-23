@@ -6,5 +6,6 @@
     ".lfe",
     ".rkt",
     ".janet"
-  ]
+  ],
+  "run_paren_mode_when_file_opened": false
 }
