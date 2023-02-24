@@ -31,10 +31,10 @@ If you have [Package Control] installed, you can easily install the
 
 You can symlink this repo to the Sublime Text Packages directory:
 
-```
+```sh
 cd ~
 git clone git@github.com:oakmac/sublime-text-parinfer.git
-ln -s ~/sublime-text-parinfer ~/Library/Application\ Support/Sublime\ Text/Packages/
+ln -s ~/sublime-text-parinfer ~/Library/Application\ Support/Sublime\ Text/Packages/Parinfer
 ```
 
 ### Windows
@@ -48,40 +48,43 @@ git clone https://github.com/oakmac/sublime-text-parinfer.git Parinfer
 
 ### File Extensions
 
-Once the package has been installed, it will automatically load in the
-background when you open Sublime Text and watch for file extensions found in a
-config file. The default file extensions are: `.clj` `.cljs` `.cljc` `.lfe`
-`.rkt`
+Once installed, Parinfer will automatically activate when you open a file with
+a [known file extension].
 
-You can edit these file extensions by going to Preferences --> Package Settings -->
-Parinfer --> Settings - Default
+You can change the list of watched file extensions by going to Preferences -->
+Package Settings --> Parinfer --> Settings.
+
+[known file extension]:https://github.com/oakmac/sublime-text-parinfer/blob/master/Parinfer.sublime-settings#L2-L9
 
 ### Opening a File
 
-When a file with a recognized extension is first opened, Parinfer runs [Paren
-Mode] on the entire file and one of three things will happen (in order of
-likelihood):
+When a file with a recognized extension is opened, Parinfer will enter
+`Parinfer: Waiting` mode and wait for the **first edit to the buffer**. When
+the first edit occurs, Parinfer will enter `Parinfer: Indent` mode and begin
+controlling closing parenthesis based on indentation.
 
-* **The file was unchanged.** You will be automatically dropped into Indent
-  Mode. This is the most likely scenario once you start using Parinfer
-  regularly.
-* **Paren Mode changed the file.** The buffer will receive the changes and you
-  will be dropped into Indent Mode. This is most likely to happen when you first
-  start using Parinfer on an existing file.
-* **Paren Mode failed.** This is almost certainly caused by having unbalanced
-  parens in your file (ie: it will not compile). The text will not be changed
-  and you will be dropped into Paren Mode in order to fix the problem.
+### Behavior Change for v1.0.0
 
-Running Paren Mode is a necessary first step before Indent Mode can be safely
-turned on. See [Fixing existing files] for more information.
+Before v1.0.0, when a file was opened Parinfer would run Paren Mode on the
+entire file first before entering Indent Mode (see [Fixing existing files]
+for more details). This was not a problem for regular users of Parinfer
+because running Paren Mode on a file written using Parinfer will not result
+in any changes.
 
-Please be aware that - depending on the indentation and formatting in your Lisp
-files - this initial processing may result in a large diff the first time it
-happens. Once you start using Indent Mode regularly, this initial processing is
-unlikely to result in a large diff (or any diff at all). You may even discover
-that applying Paren Mode to a file can result in [catching very hard-to-find
-bugs] in your existing code! As usual, developers are responsible for reviewing
-their diffs before a code commit :)
+However, this behavior was [sometimes confusing] for users new to Parinfer
+when they would open a file not written using Parinfer and see edits in
+places they did not intend to make.
+
+[sometimes confusing]:https://github.com/oakmac/sublime-text-parinfer/issues/43
+
+Starting with v1.0.0, Parinfer will first enter "Waiting" mode and only begin
+controlling closing parens after the first modification to the buffer. If you
+desire the pre-v1.0.0 behavior, set the config setting
+`run_paren_mode_when_file_opened` to `true`.
+
+Additionally, there is a new `Parinfer: Run Paren Mode on Current Buffer`
+command that can be executed at anytime and will run Paren Mode over the
+entire active buffer.
 
 ### Hotkeys and Status Bar
 
@@ -93,22 +96,16 @@ their diffs before a code commit :)
 The status bar will indicate which mode you are in or show nothing if Parinfer
 is turned off.
 
-### Future Features
+## The "parent expression" hack
 
-More options and configuration settings are planned for future releases. Browse
-the [issues] for an idea of future features. Create a new issue if you can think
-of a useful feature :)
-
-## Known Limitations
-
-This extension uses a hack for performance reasons that may act oddly in certain
-circumstances. It assumes that an open paren followed by an alpha character -
-ie: regex `^\([a-zA-Z]` - at the start of a line is the beginning of a new
-"parent expression" and tells the Parinfer algorithm to start analyzing from
-there until the next line that matches the same regex. Most of the time this is
-probably a correct assumption, but might break inside multi-line strings or
-other non-standard circumstances. This is tracked at [Issue #23]; please add to
-that if you experience problems.
+This extension uses a hack for performance reasons that may result in odd
+behavior in rare cases. It assumes that an open paren followed by an alpha
+character - ie: regex `^\([a-zA-Z]` - at the start of a line is the beginning
+of a new "parent expression" and tells the Parinfer algorithm to start
+analyzing from there until the next line that matches the same regex. Most of
+the time this is probably a correct assumption, but might break inside
+multi-line strings or other non-standard circumstances. This is tracked at
+[Issue #23]; please add to that if you experience problems.
 
 ## License
 
