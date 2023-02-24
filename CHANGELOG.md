@@ -3,8 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [1.0.0] - 2023-02-23
 ### Added
 * add command "Parinfer: Run Paren Mode on Current Buffer"
+* add config flag `run_paren_mode_when_file_opened`
+
+### Changed
+* do not run Paren Mode on the full file when it is first opened
+* drop the user into "Waiting" mode when a file is opened where Parinfer should be enabled
+* enable Indent Mode after the first buffer modification
+* reduce the range that Parinfer looks for parent expressions (with the goal of minimizing changes to longer files)
 
 ### Fixed
 * added some defensive code to prevent an occasional runtime error

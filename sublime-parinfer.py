@@ -1,6 +1,6 @@
 """
 Sublime Text Parinfer
-v0.9.0
+v1.0.0
 https://github.com/oakmac/sublime-text-parinfer
 
 More information about Parinfer can be found here:
