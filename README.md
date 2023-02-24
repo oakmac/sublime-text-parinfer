@@ -72,7 +72,7 @@ because running Paren Mode on a file written using Parinfer will not result
 in any changes.
 
 However, this behavior was [sometimes confusing] for users new to Parinfer
-when they would open a file **not** written using Parinfer and see edits in
+when they would open a file not written using Parinfer and see edits in
 places they did not intend to make.
 
 [sometimes confusing]:https://github.com/oakmac/sublime-text-parinfer/issues/43
