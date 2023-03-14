@@ -1,6 +1,6 @@
 """
 Sublime Text Parinfer
-v1.0.0
+v1.1.0
 https://github.com/oakmac/sublime-text-parinfer
 
 More information about Parinfer can be found here:
@@ -29,7 +29,7 @@ except NameError:
     basestring = str
 
 # dev flag
-DEBUG_LOGGING = True
+DEBUG_LOGGING = False
 
 # constants
 DEBOUNCE_INTERVAL_MS = 50

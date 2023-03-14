@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.0] - 2023-03-14
+### Fixed
+* Remove debug logging [Issue #45] (thank you [oconnor0])
+
 ## [1.0.0] - 2023-02-23
 ### Added
 * add command "Parinfer: Run Paren Mode on Current Buffer"
@@ -78,12 +82,14 @@ All notable changes to this project will be documented in this file.
 [Issue #20]:https://github.com/oakmac/sublime-text-parinfer/issues/20
 [Issue #25]:https://github.com/oakmac/sublime-text-parinfer/issues/25
 [Issue #28]:https://github.com/oakmac/sublime-text-parinfer/issues/28
+[Issue #45]:https://github.com/oakmac/sublime-text-parinfer/issues/45
 [PR-37]:https://github.com/oakmac/sublime-text-parinfer/pull/37
 [PR-39]:https://github.com/oakmac/sublime-text-parinfer/pull/39
 [PR-40]:https://github.com/oakmac/sublime-text-parinfer/pull/40
 [PR-41]:https://github.com/oakmac/sublime-text-parinfer/pull/41
 
-[Unreleased]: https://github.com/oakmac/sublime-text-parinfer/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/oakmac/sublime-text-parinfer/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v1.1.0
 [1.0.0]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v1.0.0
 [0.9.0]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v0.9.0
 [0.8.1]: https://github.com/oakmac/sublime-text-parinfer/releases/tag/v0.8.1
