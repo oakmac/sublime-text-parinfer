@@ -48,10 +48,11 @@ def debug_log(x):
 
 
 def get_syntax_language(view):
-    regex_res = re.search(SYNTAX_LANGUAGE_RE, view.settings().get("syntax"))
-    if regex_res:
+    try:
+        regex_res = re.search(SYNTAX_LANGUAGE_RE, view.settings().get("syntax"))
         return regex_res.group(1)
-    return None
+    except:
+        return None
 
 
 # TODO: This is ugly, but I'm not sure how to avoid the ugly iteration lookup on each view.
